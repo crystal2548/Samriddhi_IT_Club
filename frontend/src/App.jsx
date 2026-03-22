@@ -1,15 +1,7 @@
-import { Routes, Route } from 'react-router-dom'
-
-// Public pages
-import Home from './pages/public/Home'
+import AppRoutes from './routes/routes'
 
 function App() {
-  return (
-    <Routes>
-      {/* Public routes */}
-      <Route path="/" element={<Home />} />
-    </Routes>
-  )
+  return <AppRoutes />
 }
 
 export default App
