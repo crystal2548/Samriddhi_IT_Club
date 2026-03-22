@@ -1,0 +1,24 @@
+@import "tailwindcss";
+
+:root {
+  --bg-primary: #0A0A0F;
+  --glass-bg: rgba(255, 255, 255, 0.04);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --accent-primary: #00F5A0;
+  --accent-secondary: #7B61FF;
+  --text-primary: #E8E8F0;
+  --text-muted: #6B7280;
+  --danger: #FF4560;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: #0A0A0F;
+  color: #E8E8F0;
+  font-family: 'Inter', sans-serif;
+}
