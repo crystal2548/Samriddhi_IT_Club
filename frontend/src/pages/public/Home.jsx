@@ -20,7 +20,7 @@ export default function Home() {
       const [eventsRes, projectsRes, postsRes] = await Promise.all([
         supabase.from('events').select('*').in('status', ['upcoming', 'ongoing']).order('event_date', { ascending: true }).limit(3),
         supabase.from('projects').select('*').eq('is_featured', true).order('created_at', { ascending: false }).limit(3),
-        supabase.from('blog_posts').select('id, title, slug, category, read_time_mins, published_at, profiles(full_name)').eq('status', 'published').order('published_at', { ascending: false }).limit(3),
+        supabase.from('blog_posts').select('id, title, slug, category, cover_image_url, read_time_mins, published_at, profiles(full_name)').eq('status', 'published').order('published_at', { ascending: false }).limit(3),
       ])
       setEvents(eventsRes.data || [])
       setProjects(projectsRes.data || [])
@@ -363,7 +363,12 @@ function BlogCard({ post }) {
         onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(0,212,255,0.25)'; e.currentTarget.style.transform = 'translateY(-4px)' }}
         onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.transform = 'translateY(0)' }}
       >
-        <div style={{ height: 180, background: 'linear-gradient(135deg, #0D1829, #142040)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 56, color: 'rgba(0,212,255,0.08)' }}>✦</div>
+        <div style={{ height: 180, background: 'linear-gradient(135deg, #0D1829, #142040)', overflow: 'hidden', position: 'relative' }}>
+          {post.cover_image_url
+            ? <img src={post.cover_image_url} alt={post.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }}/>
+            : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 56, color: 'rgba(0,212,255,0.08)' }}>✦</div>
+          }
+        </div>
         <div style={{ padding: '20px 20px 24px', flex: 1, display: 'flex', flexDirection: 'column' }}>
           {post.category && (
             <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: catColor[post.category] || 'var(--cyan)', background: catBg[post.category] || 'rgba(0,212,255,0.08)', padding: '3px 10px', borderRadius: 20, display: 'inline-block', marginBottom: 12, width: 'fit-content' }}>

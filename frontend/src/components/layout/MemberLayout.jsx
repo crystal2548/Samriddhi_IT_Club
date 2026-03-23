@@ -4,11 +4,11 @@ import MemberSidebar from '../layout/MemberSidebar'
 
 export default function MemberLayout() {
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: 'var(--bg-primary)' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg-primary)' }}>
       <Navbar />
-      <div className="flex flex-1">
+      <div style={{ display: 'flex', paddingTop: '64px' }}>
         <MemberSidebar />
-        <main className="flex-1 p-6 overflow-auto">
+        <main style={{ flex: 1, padding: '32px', overflowY: 'auto', minHeight: 'calc(100vh - 64px)' }}>
           <Outlet />
         </main>
       </div>

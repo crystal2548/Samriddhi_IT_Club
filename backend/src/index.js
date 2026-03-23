@@ -14,6 +14,10 @@ app.use(cors({
 }))
 app.use(express.json())
 
+// Routes
+const uploadRoutes = require('./routes/uplode')
+app.use('/api/upload', uploadRoutes)
+
 // Test route
 app.get('/', (req, res) => {
   res.json({ message: 'Samriddhi IT Club API is running!' })

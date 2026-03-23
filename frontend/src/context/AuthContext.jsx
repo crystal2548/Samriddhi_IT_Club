@@ -47,7 +47,7 @@ export const AuthProvider = ({ children }) => {
     loading,
     role: profile?.role ?? null,
     isOC: profile?.role === 'oc',
-    isExecutive: profile?.role === 'executive',
+    isExecutive: profile?.role === 'executive' || profile?.role === 'oc',
     isMember: !!user,
   }
 
