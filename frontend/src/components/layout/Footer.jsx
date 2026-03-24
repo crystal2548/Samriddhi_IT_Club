@@ -1,7 +1,9 @@
 import { Link } from 'react-router-dom'
+import { useSiteSettings } from '../../context/SiteContext'
 
 export default function Footer() {
   const year = new Date().getFullYear()
+  const { settings } = useSiteSettings()
 
   return (
     <footer style={{ background: '#07090F', borderTop: '1px solid var(--border)' }}>
@@ -18,27 +20,31 @@ export default function Footer() {
           <div>
             <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
               <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(0,212,255,0.08)', border: '1.5px solid rgba(0,212,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <svg width="18" height="18" viewBox="0 0 16 16" fill="none">
-                  <rect x="6" y="6" width="4" height="4" rx="1" stroke="var(--cyan)" strokeWidth="1.5"/>
-                  <line x1="8" y1="1" x2="8" y2="6" stroke="var(--cyan)" strokeWidth="1.5" strokeLinecap="round"/>
-                  <line x1="8" y1="10" x2="8" y2="15" stroke="var(--cyan)" strokeWidth="1.5" strokeLinecap="round"/>
-                  <line x1="1" y1="8" x2="6" y2="8" stroke="var(--cyan)" strokeWidth="1.5" strokeLinecap="round"/>
-                  <line x1="10" y1="8" x2="15" y2="8" stroke="var(--cyan)" strokeWidth="1.5" strokeLinecap="round"/>
-                  <circle cx="8" cy="1" r="1" fill="var(--cyan)"/>
-                  <circle cx="8" cy="15" r="1" fill="var(--cyan)"/>
-                  <circle cx="1" cy="8" r="1" fill="var(--pink)"/>
-                  <circle cx="15" cy="8" r="1" fill="var(--pink)"/>
-                </svg>
+                {settings.logo_url ? (
+                  <img src={settings.logo_url} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: 8 }} />
+                ) : (
+                  <svg width="18" height="18" viewBox="0 0 16 16" fill="none">
+                    <rect x="6" y="6" width="4" height="4" rx="1" stroke="var(--cyan)" strokeWidth="1.5"/>
+                    <line x1="8" y1="1" x2="8" y2="6" stroke="var(--cyan)" strokeWidth="1.5" strokeLinecap="round"/>
+                    <line x1="8" y1="10" x2="8" y2="15" stroke="var(--cyan)" strokeWidth="1.5" strokeLinecap="round"/>
+                    <line x1="1" y1="8" x2="6" y2="8" stroke="var(--cyan)" strokeWidth="1.5" strokeLinecap="round"/>
+                    <line x1="10" y1="8" x2="15" y2="8" stroke="var(--cyan)" strokeWidth="1.5" strokeLinecap="round"/>
+                    <circle cx="8" cy="1" r="1" fill="var(--cyan)"/>
+                    <circle cx="8" cy="15" r="1" fill="var(--cyan)"/>
+                    <circle cx="1" cy="8" r="1" fill="var(--pink)"/>
+                    <circle cx="15" cy="8" r="1" fill="var(--pink)"/>
+                  </svg>
+                )}
               </div>
               <div>
                 <span style={{ fontSize: 14, fontWeight: 800, color: '#fff', letterSpacing: '0.04em', display: 'block', lineHeight: 1 }}>
-                  SAMRIDDHI <span style={{ color: 'var(--cyan)' }}>IT CLUB</span>
+                  {settings.club_name.toUpperCase()}
                 </span>
               </div>
             </Link>
 
             <p style={{ color: 'var(--text-muted)', fontSize: 13, lineHeight: 1.7, marginBottom: 24, maxWidth: 260 }}>
-              Empowering the next generation of tech innovators through collaboration and code.
+              {settings.tagline || 'Empowering the next generation of tech innovators through collaboration and code.'}
             </p>
 
             {/* Social icons */}
@@ -135,10 +141,10 @@ export default function Footer() {
         {/* ── Bottom bar ───────────────────────────────── */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 24, flexWrap: 'wrap', gap: 12 }}>
           <p style={{ color: '#1E3A4A', fontSize: 12, fontFamily: 'JetBrains Mono, monospace' }}>
-            © {year} Samriddhi IT Club. All rights reserved.
+            © {year} {settings.club_name}. All rights reserved.
           </p>
           <p style={{ color: '#1E3A4A', fontSize: 12, fontFamily: 'JetBrains Mono, monospace' }}>
-            Built with ♥ by Samriddhi
+            Built with ♥ by {settings.club_name.split(' ')[0]}
           </p>
         </div>
 

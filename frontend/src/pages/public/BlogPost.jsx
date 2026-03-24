@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { supabase } from '../../utils/supabase'
 import { formatDate } from '../../utils/formatDate'
+import { useSiteSettings } from '../../context/SiteContext'
 
 function getInitials(name) {
   if (!name) return 'A'
@@ -26,6 +27,7 @@ export default function BlogPost() {
   const [related, setRelated] = useState([])
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
+  const { settings } = useSiteSettings()
 
   useEffect(() => {
     fetchPost()
@@ -256,7 +258,7 @@ export default function BlogPost() {
             Back to Blog
           </Link>
           <Link to="/join" style={{ padding: '9px 20px', background: 'rgba(0,212,255,0.08)', border: '1px solid rgba(0,212,255,0.2)', borderRadius: 8, color: 'var(--cyan)', fontSize: 12, fontWeight: 600, textDecoration: 'none' }}>
-            Join Samriddhi IT Club →
+            {settings.hero_cta_text || `Join ${settings.club_name} →`}
           </Link>
         </div>
 

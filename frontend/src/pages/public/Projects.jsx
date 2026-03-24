@@ -2,12 +2,14 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../../utils/supabase'
 import ProjectCard from '../../components/shared/ProjectCard'
+import { useSiteSettings } from '../../context/SiteContext'
 
 export default function Projects() {
   const [projects, setProjects] = useState([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState('all')
+  const { settings } = useSiteSettings()
 
   useEffect(() => {
     async function fetchProjects() {
@@ -43,7 +45,7 @@ export default function Projects() {
           <p style={{ color: 'var(--cyan)', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>Our Works</p>
           <h1 style={{ fontFamily: 'Barlow Condensed, sans-serif', fontSize: 'clamp(32px, 5vw, 48px)', fontWeight: 800, color: '#fff', textTransform: 'uppercase', letterSpacing: '0.02em', marginBottom: 16 }}>PROJECTS</h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: 14, lineHeight: 1.6, maxWidth: 600 }}>
-            Explore the innovative solutions and creative projects built by the members of Samriddhi IT Club. From web apps to AI models, we're building the future, one commit at a time.
+            Explore the innovative solutions and creative projects built by the members of {settings.club_name}. From web apps to AI models, we're building the future, one commit at a time.
           </p>
         </div>
 

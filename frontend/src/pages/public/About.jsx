@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../../utils/supabase'
+import { useSiteSettings } from '../../context/SiteContext'
 
 function getInitials(name) {
   if (!name) return 'A'
@@ -43,7 +44,7 @@ const VALUES = [
     bg: 'rgba(167,139,250,0.08)',
     border: 'rgba(167,139,250,0.2)',
     title: 'Create Impact',
-    desc: 'Integrity, collaboration, and excellence are our cornerstones. We build real projects that solve real problems, creating a positive impact within Samriddhi and beyond.',
+    desc: 'Integrity, collaboration, and excellence are our cornerstones. We build real projects that solve real problems, creating a positive impact.',
   },
 ]
 
@@ -58,6 +59,7 @@ const TIMELINE = [
 export default function About() {
   const [team, setTeam] = useState([])
   const [loading, setLoading] = useState(true)
+  const { settings } = useSiteSettings()
 
   useEffect(() => {
     async function fetchTeam() {
@@ -102,11 +104,11 @@ export default function About() {
           </h1>
 
           <p style={{ color: 'var(--text-secondary)', fontSize: 14, lineHeight: 1.8, maxWidth: 560, margin: '0 auto 36px', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 500 }}>
-            Samriddhi IT Club is a premier community of developers, designers, and tech entrepreneurs dedicated to shaping Nepal's digital future through collaboration, innovation, and excellence.
+            {settings.club_name} is a premier community of developers, designers, and tech entrepreneurs dedicated to shaping Nepal's digital future through collaboration, innovation, and excellence.
           </p>
 
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Link to="/join" className="btn-primary" style={{ fontSize: 13, padding: '12px 28px' }}>Join the Club</Link>
+            <Link to="/join" className="btn-primary" style={{ fontSize: 13, padding: '12px 28px' }}>{settings.hero_cta_text || 'Join the Club'}</Link>
             <Link to="/team" className="btn-outline" style={{ fontSize: 13, padding: '12px 28px' }}>Meet the Team</Link>
           </div>
         </div>
@@ -165,7 +167,7 @@ export default function About() {
               <p style={{ color: 'var(--cyan)', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>Our Journey</p>
               <h2 style={{ fontFamily: 'Barlow Condensed, sans-serif', fontSize: 'clamp(28px,4vw,36px)', fontWeight: 800, color: '#fff', textTransform: 'uppercase', letterSpacing: '0.02em', marginBottom: 24 }}>OUR STORY</h2>
               <p style={{ color: 'var(--text-secondary)', fontSize: 14, lineHeight: 1.85, marginBottom: 20 }}>
-                Born from a shared passion for technology, Samriddhi IT Club began as a small group of students who believed that the best way to learn was to build together. What started as informal coding sessions quickly grew into one of Samriddhi College's most dynamic student organizations.
+                Born from a shared passion for technology, {settings.club_name} began as a small group of students who believed that the best way to learn was to build together. What started as informal coding sessions quickly grew into a dynamic student organization.
               </p>
               <p style={{ color: 'var(--text-muted)', fontSize: 14, lineHeight: 1.85, marginBottom: 32 }}>
                 Today, we are a thriving community of 120+ active members who collectively drive innovation through real-world projects, industry-level hackathons, curated workshops, and meaningful networking events. We don't just write code — we create the future.

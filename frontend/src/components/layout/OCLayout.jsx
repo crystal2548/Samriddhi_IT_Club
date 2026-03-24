@@ -11,11 +11,16 @@ export default function OCLayout() {
 
   useEffect(() => {
     async function fetchBadges() {
-      const [appsRes, permsRes] = await Promise.all([
+      const [appsRes, permsRes, contactRes] = await Promise.all([
         supabase.from('applications').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
         supabase.from('permission_requests').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+        supabase.from('contact_messages').select('id', { count: 'exact', head: true }),
       ])
-      setBadges({ applications: appsRes.count || 0, permissions: permsRes.count || 0 })
+      setBadges({ 
+        applications: appsRes.count || 0, 
+        permissions: permsRes.count || 0,
+        messages: contactRes.count || 0
+      })
     }
     fetchBadges()
   }, [])

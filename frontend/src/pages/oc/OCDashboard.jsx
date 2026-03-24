@@ -6,8 +6,9 @@ import { formatDate } from '../../utils/formatDate'
 
 export default function OCDashboard() {
   const { profile } = useAuth()
-  const [stats, setStats] = useState({ members: 0, applications: 0, events: 0, permissions: 0 })
+  const [stats, setStats] = useState({ members: 0, applications: 0, events: 0, permissions: 0, messages: 0 })
   const [applications, setApplications] = useState([])
+  const [messages, setMessages] = useState([])
   const [permRequests, setPermRequests] = useState([])
   const [recentMembers, setRecentMembers] = useState([])
   const [loading, setLoading] = useState(true)
@@ -17,11 +18,12 @@ export default function OCDashboard() {
   }, [])
 
   async function fetchAll() {
-    const [membersRes, appsRes, eventsRes, permsRes, recentRes, permReqRes] = await Promise.all([
+    const [membersRes, appsRes, eventsRes, permsRes, contactRes, recentRes, permReqRes] = await Promise.all([
       supabase.from('profiles').select('id', { count: 'exact', head: true }),
       supabase.from('applications').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
       supabase.from('events').select('id', { count: 'exact', head: true }).in('status', ['upcoming', 'ongoing']),
       supabase.from('permission_requests').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+      supabase.from('contact_messages').select('id', { count: 'exact', head: true }),
       supabase.from('profiles').select('id, full_name, role, college_year, created_at').order('created_at', { ascending: false }).limit(5),
       supabase.from('permission_requests').select('*, profiles!requester_id(full_name, oc_position)').eq('status', 'pending').order('created_at', { ascending: false }).limit(5),
     ])
@@ -31,17 +33,17 @@ export default function OCDashboard() {
       applications: appsRes.count || 0,
       events: eventsRes.count || 0,
       permissions: permsRes.count || 0,
+      messages: contactRes.count || 0,
     })
 
-    // Fetch pending applications with details
-    const { data: pendingApps } = await supabase
-      .from('applications')
-      .select('*')
-      .eq('status', 'pending')
-      .order('created_at', { ascending: false })
-      .limit(8)
+    // Fetch pending applications and recent messages
+    const [pendingApps, recentMsgs] = await Promise.all([
+      supabase.from('applications').select('*').eq('status', 'pending').order('created_at', { ascending: false }).limit(8),
+      supabase.from('contact_messages').select('*').order('created_at', { ascending: false }).limit(5)
+    ])
 
-    setApplications(pendingApps || [])
+    setApplications(pendingApps.data || [])
+    setMessages(recentMsgs.data || [])
     setRecentMembers(recentRes.data || [])
     setPermRequests(permReqRes.data || [])
     setLoading(false)
@@ -88,20 +90,21 @@ export default function OCDashboard() {
       </div>
 
       {/* Stat cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 32 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 16, marginBottom: 32 }}>
         {[
           { label: 'Total members',      value: stats.members,      color: 'var(--cyan)', link: '/oc/members' },
-          { label: 'Pending applications', value: stats.applications, color: '#F59E0B',     link: '/oc/applications' },
+          { label: 'Pending apps',       value: stats.applications, color: '#F59E0B',     link: '/oc/applications' },
           { label: 'Active events',      value: stats.events,       color: '#A78BFA',     link: '/oc/events' },
-          { label: 'Permission requests', value: stats.permissions,  color: 'var(--pink)', link: '/oc/permissions' },
+          { label: 'New Messages',       value: stats.messages,     color: '#10B981',     link: '/oc/messages' },
+          { label: 'Perm requests',      value: stats.permissions,  color: 'var(--pink)', link: '/oc/permissions' },
         ].map((s, i) => (
           <Link key={i} to={s.link} style={{ textDecoration: 'none' }}>
             <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, padding: '20px 20px 16px', transition: 'border-color 0.2s, transform 0.2s', cursor: 'pointer' }}
               onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(0,212,255,0.2)'; e.currentTarget.style.transform = 'translateY(-2px)' }}
               onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.transform = 'translateY(0)' }}
             >
-              <p style={{ color: 'var(--text-muted)', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>{s.label}</p>
-              <p style={{ fontFamily: 'Barlow Condensed, sans-serif', fontSize: 40, fontWeight: 800, color: s.color, lineHeight: 1 }}>
+              <p style={{ color: 'var(--text-muted)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>{s.label}</p>
+              <p style={{ fontFamily: 'Barlow Condensed, sans-serif', fontSize: 32, fontWeight: 800, color: s.color, lineHeight: 1 }}>
                 {loading ? '—' : s.value}
               </p>
             </div>
@@ -109,38 +112,28 @@ export default function OCDashboard() {
         ))}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24 }}>
 
         {/* Pending Applications */}
         <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden' }}>
           <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <h3 style={{ color: '#fff', fontSize: 14, fontWeight: 600 }}>Pending Applications</h3>
-            <Link to="/oc/applications" style={{ color: 'var(--cyan)', fontSize: 12, textDecoration: 'none' }}>View all →</Link>
+            <h3 style={{ color: '#fff', fontSize: 13, fontWeight: 600 }}>Pending Apps</h3>
+            <Link to="/oc/applications" style={{ color: 'var(--cyan)', fontSize: 11, textDecoration: 'none' }}>View all →</Link>
           </div>
           <div>
             {loading ? (
               <div style={{ padding: 20 }}><Skeleton /></div>
             ) : applications.length === 0 ? (
-              <div style={{ padding: '32px 20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 13 }}>No pending applications</div>
+              <div style={{ padding: '32px 20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 12 }}>No pending apps</div>
             ) : (
               applications.map((app) => (
-                <div key={app.id} style={{ padding: '12px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'linear-gradient(135deg, var(--cyan), #0066FF)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
+                <div key={app.id} style={{ padding: '12px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'linear-gradient(135deg, var(--cyan), #0066FF)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
                     {app.full_name?.[0]}
                   </div>
                   <div style={{ flex: 1, overflow: 'hidden' }}>
-                    <p style={{ color: '#fff', fontSize: 13, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{app.full_name}</p>
-                    <p style={{ color: 'var(--text-muted)', fontSize: 11 }}>{app.college_year ? `Year ${app.college_year}` : ''} · {formatDate(app.created_at)}</p>
-                  </div>
-                  <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-                    <button onClick={() => handleApplication(app.id, 'approved')}
-                      style={{ padding: '4px 10px', borderRadius: 6, background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.25)', color: '#10B981', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>
-                      Approve
-                    </button>
-                    <button onClick={() => handleApplication(app.id, 'rejected')}
-                      style={{ padding: '4px 10px', borderRadius: 6, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)', color: '#EF4444', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>
-                      Reject
-                    </button>
+                    <p style={{ color: '#fff', fontSize: 12, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{app.full_name}</p>
+                    <p style={{ color: 'var(--text-muted)', fontSize: 10 }}>{formatDate(app.created_at)}</p>
                   </div>
                 </div>
               ))
@@ -148,52 +141,61 @@ export default function OCDashboard() {
           </div>
         </div>
 
-        {/* Permission Requests — President only */}
+        {/* Recent Messages */}
         <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden' }}>
           <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <h3 style={{ color: '#fff', fontSize: 14, fontWeight: 600 }}>Permission Requests</h3>
-            <Link to="/oc/permissions" style={{ color: 'var(--cyan)', fontSize: 12, textDecoration: 'none' }}>View all →</Link>
+            <h3 style={{ color: '#fff', fontSize: 13, fontWeight: 600 }}>Recent Messages</h3>
+            <Link to="/oc/messages" style={{ color: 'var(--cyan)', fontSize: 11, textDecoration: 'none' }}>View all →</Link>
+          </div>
+          <div>
+            {loading ? (
+              <div style={{ padding: 20 }}><Skeleton /></div>
+            ) : messages.length === 0 ? (
+              <div style={{ padding: '32px 20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 12 }}>No recent messages</div>
+            ) : (
+              messages.map((msg) => (
+                <div key={msg.id} style={{ padding: '12px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div style={{ width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg, var(--pink), #00D4FF)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
+                    {msg.full_name?.[0]}
+                  </div>
+                  <div style={{ flex: 1, overflow: 'hidden' }}>
+                    <p style={{ color: '#fff', fontSize: 12, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{msg.full_name}</p>
+                    <p style={{ color: 'var(--text-muted)', fontSize: 10 }}>{msg.subject}</p>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* Permission Requests */}
+        <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden' }}>
+          <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <h3 style={{ color: '#fff', fontSize: 13, fontWeight: 600 }}>Perm Requests</h3>
+            <Link to="/oc/permissions" style={{ color: 'var(--cyan)', fontSize: 11, textDecoration: 'none' }}>View all →</Link>
           </div>
           <div>
             {!isPresident ? (
-              <div style={{ padding: '32px 20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 13 }}>
-                Only the President can manage permissions.
-              </div>
+              <div style={{ padding: '32px 20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 12 }}>President only</div>
             ) : loading ? (
               <div style={{ padding: 20 }}><Skeleton /></div>
             ) : permRequests.length === 0 ? (
-              <div style={{ padding: '32px 20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 13 }}>No pending requests</div>
+              <div style={{ padding: '32px 20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 12 }}>No pending requests</div>
             ) : (
               permRequests.map((req) => (
-                <div key={req.id} style={{ padding: '14px 20px', borderBottom: '1px solid var(--border)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-                    <div>
-                      <p style={{ color: '#fff', fontSize: 13, fontWeight: 500 }}>{req.profiles?.full_name}</p>
-                      <p style={{ color: 'var(--text-muted)', fontSize: 11, textTransform: 'capitalize' }}>{req.profiles?.oc_position?.replace(/_/g, ' ')}</p>
-                    </div>
-                    <div style={{ display: 'flex', gap: 6 }}>
-                      <button onClick={() => handlePermission(req.id, 'approved')}
-                        style={{ padding: '4px 10px', borderRadius: 6, background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.25)', color: '#10B981', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>
-                        Grant
-                      </button>
-                      <button onClick={() => handlePermission(req.id, 'rejected')}
-                        style={{ padding: '4px 10px', borderRadius: 6, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)', color: '#EF4444', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>
-                        Deny
-                      </button>
-                    </div>
+                <div key={req.id} style={{ padding: '12px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: 'var(--cyan)', flexShrink: 0 }}>
+                    {req.profiles?.full_name?.[0]}
                   </div>
-                  <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border)', borderRadius: 6, padding: '8px 10px' }}>
-                    <p style={{ color: 'var(--cyan)', fontSize: 10, fontFamily: 'JetBrains Mono, monospace', marginBottom: 3 }}>
-                      Requesting: {req.permission_requested}
-                    </p>
-                    <p style={{ color: 'var(--text-muted)', fontSize: 11 }}>{req.reason}</p>
+                  <div style={{ flex: 1, overflow: 'hidden' }}>
+                    <p style={{ color: '#fff', fontSize: 12, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{req.profiles?.full_name}</p>
+                    <p style={{ color: 'var(--text-muted)', fontSize: 10 }}>{req.permission_requested}</p>
                   </div>
                 </div>
               ))
             )}
           </div>
         </div>
-
       </div>
 
       {/* Recent Members */}

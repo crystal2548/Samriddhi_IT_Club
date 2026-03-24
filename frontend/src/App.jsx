@@ -1,7 +1,12 @@
 import AppRoutes from './routes/routes'
+import { SiteProvider } from './context/SiteContext'
 
 function App() {
-  return <AppRoutes />
+  return (
+    <SiteProvider>
+      <AppRoutes />
+    </SiteProvider>
+  )
 }
 
 export default App

@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../utils/supabase'
+import { useSiteSettings } from '../../context/SiteContext'
 
 export default function MemberDirectory() {
   const [members, setMembers] = useState([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState('all')
+  const { settings } = useSiteSettings()
 
   useEffect(() => {
     supabase
@@ -49,7 +51,7 @@ export default function MemberDirectory() {
           Member Directory
         </h1>
         <p style={{ color: 'var(--text-muted)', fontSize: 13, marginTop: 4 }}>
-          {members.length} active members in Samriddhi IT Club.
+          {members.length} active members in {settings.club_name}.
         </p>
       </div>
 

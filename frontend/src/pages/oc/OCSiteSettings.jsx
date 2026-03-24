@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { supabase } from '../../utils/supabase'
 import { useAuth } from '../../context/AuthContext'
 
@@ -55,7 +55,9 @@ export default function OCSiteSettings() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
               <Field label="Club Name" value={settings.club_name} onChange={v => setSettings(p => ({ ...p, club_name: v }))} />
               <Field label="Tagline" value={settings.tagline} onChange={v => setSettings(p => ({ ...p, tagline: v }))} />
-              <Field label="Logo URL" value={settings.logo_url} onChange={v => setSettings(p => ({ ...p, logo_url: v }))} placeholder="Cloudinary URL" />
+              <div style={{ gridColumn: '1 / -1' }}>
+                <LogoUpload label="Club Logo" value={settings.logo_url} onChange={url => setSettings(p => ({ ...p, logo_url: url }))} />
+              </div>
               <Field label="Hero CTA Button Text" value={settings.hero_cta_text} onChange={v => setSettings(p => ({ ...p, hero_cta_text: v }))} placeholder="e.g. Join the Club" />
               <Field label="Contact Email" type="email" value={settings.contact_email} onChange={v => setSettings(p => ({ ...p, contact_email: v }))} />
             </div>
@@ -111,6 +113,78 @@ function Field({ label, value, onChange, type = 'text', placeholder = '' }) {
         onFocus={e => e.target.style.borderColor = 'rgba(0,212,255,0.4)'}
         onBlur={e => e.target.style.borderColor = 'var(--border)'}
       />
+    </div>
+  )
+}
+
+function LogoUpload({ label, value, onChange }) {
+  const fileRef = useRef(null)
+  const [uploading, setUploading] = useState(false)
+  const [error, setError] = useState('')
+
+  async function handleFile(e) {
+    const file = e.target.files[0]
+    if (!file) return
+    if (file.size > 5 * 1024 * 1024) { setError('Image must be under 5MB.'); return }
+    setUploading(true); setError('')
+
+    try {
+      const signRes = await fetch(`${import.meta.env.VITE_API_URL}/api/upload/sign`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      })
+      if (!signRes.ok) throw new Error(`Sign request failed with status: ${signRes.status}`)
+      
+      const { signature, timestamp, api_key, cloud_name } = await signRes.json()
+
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('timestamp', timestamp)
+      formData.append('signature', signature)
+      formData.append('api_key', api_key)
+
+      const uploadRes = await fetch(
+        `https://api.cloudinary.com/v1_1/${cloud_name}/image/upload`,
+        { method: 'POST', body: formData }
+      )
+      
+      if (!uploadRes.ok) {
+        const errData = await uploadRes.json()
+        throw new Error(errData.error?.message || 'Cloudinary upload failed')
+      }
+
+      const result = await uploadRes.json()
+      if (result.secure_url) {
+        onChange(result.secure_url)
+      } else {
+        throw new Error('No secure_url returned from Cloudinary')
+      }
+    } catch (err) {
+      console.error('Upload flow error:', err)
+      setError(`Upload failed: ${err.message}`)
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  return (
+    <div>
+      <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>{label}</label>
+      <div style={{ border: '1px dashed var(--border)', borderRadius: 12, padding: 20, textAlign: 'center', background: 'rgba(255,255,255,0.02)' }}>
+        {value ? (
+          <div style={{ position: 'relative', width: 'fit-content', margin: '0 auto' }}>
+            <img src={value} alt="Logo" style={{ height: 60, borderRadius: 8, objectFit: 'contain', background: '#fff', padding: 8 }}/>
+            <button onClick={() => onChange('')} style={{ position: 'absolute', top: -10, right: -10, width: 24, height: 24, borderRadius: '50%', background: '#EF4444', border: 'none', color: '#fff', cursor: 'pointer' }}>×</button>
+          </div>
+        ) : (
+          <div onClick={() => !uploading && fileRef.current?.click()} style={{ cursor: uploading ? 'wait' : 'pointer' }}>
+            <div style={{ fontSize: 24, color: 'var(--text-muted)', marginBottom: 8 }}>{uploading ? '...' : '+'}</div>
+            <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>{uploading ? 'Uploading...' : 'Click to upload logo'}</p>
+          </div>
+        )}
+        <input ref={fileRef} type="file" hidden onChange={handleFile} accept="image/*" />
+      </div>
+      {error && <p style={{ color: '#EF4444', fontSize: 11, marginTop: 4 }}>{error}</p>}
     </div>
   )
 }

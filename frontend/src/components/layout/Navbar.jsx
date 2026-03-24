@@ -1,11 +1,13 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import { useSiteSettings } from '../../context/SiteContext'
 import { supabase } from '../../utils/supabase'
 import { NAV_LINKS } from '../../utils/constants'
 
 export default function Navbar() {
   const { user, profile, isOC } = useAuth()
+  const { settings } = useSiteSettings()
   const navigate = useNavigate()
   const location = useLocation()
 
@@ -73,22 +75,24 @@ export default function Navbar() {
               className="flex items-center justify-center w-8 h-8 rounded-lg"
               style={{ border: '1.5px solid var(--cyan)', background: 'rgba(0,212,255,0.08)' }}
             >
-              {/* Circuit icon */}
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <rect x="6" y="6" width="4" height="4" rx="1" stroke="var(--cyan)" strokeWidth="1.5"/>
-                <line x1="8" y1="1" x2="8" y2="6" stroke="var(--cyan)" strokeWidth="1.5" strokeLinecap="round"/>
-                <line x1="8" y1="10" x2="8" y2="15" stroke="var(--cyan)" strokeWidth="1.5" strokeLinecap="round"/>
-                <line x1="1" y1="8" x2="6" y2="8" stroke="var(--cyan)" strokeWidth="1.5" strokeLinecap="round"/>
-                <line x1="10" y1="8" x2="15" y2="8" stroke="var(--cyan)" strokeWidth="1.5" strokeLinecap="round"/>
-                <circle cx="8" cy="1" r="1" fill="var(--cyan)"/>
-                <circle cx="8" cy="15" r="1" fill="var(--cyan)"/>
-                <circle cx="1" cy="8" r="1" fill="var(--pink)"/>
-                <circle cx="15" cy="8" r="1" fill="var(--pink)"/>
-              </svg>
+              {settings.logo_url ? (
+                <img src={settings.logo_url} alt="Logo" className="w-full h-full object-contain rounded-md" />
+              ) : (
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <rect x="6" y="6" width="4" height="4" rx="1" stroke="var(--cyan)" strokeWidth="1.5"/>
+                  <line x1="8" y1="1" x2="8" y2="6" stroke="var(--cyan)" strokeWidth="1.5" strokeLinecap="round"/>
+                  <line x1="8" y1="10" x2="8" y2="15" stroke="var(--cyan)" strokeWidth="1.5" strokeLinecap="round"/>
+                  <line x1="1" y1="8" x2="6" y2="8" stroke="var(--cyan)" strokeWidth="1.5" strokeLinecap="round"/>
+                  <line x1="10" y1="8" x2="15" y2="8" stroke="var(--cyan)" strokeWidth="1.5" strokeLinecap="round"/>
+                  <circle cx="8" cy="1" r="1" fill="var(--cyan)"/>
+                  <circle cx="8" cy="15" r="1" fill="var(--cyan)"/>
+                  <circle cx="1" cy="8" r="1" fill="var(--pink)"/>
+                  <circle cx="15" cy="8" r="1" fill="var(--pink)"/>
+                </svg>
+              )}
             </div>
             <span className="text-sm font-bold tracking-wide" style={{ color: '#fff' }}>
-              SAMRIDDHI{' '}
-              <span style={{ color: 'var(--cyan)' }}>IT CLUB</span>
+              {settings.club_name.toUpperCase()}
             </span>
           </Link>
 

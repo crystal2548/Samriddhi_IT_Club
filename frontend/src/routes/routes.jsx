@@ -22,6 +22,7 @@ import Resources from '../pages/public/Resources'
 import Opportunities from '../pages/public/Opportunities'
 import Team from '../pages/public/Team'
 import Contact from '../pages/public/Contact'
+import GalleryPublic from '../pages/public/Gallery'
 import NotFound from '../pages/public/NotFound'
 
 // ─── Auth Pages ─────────────────────────────────────────────
@@ -55,6 +56,7 @@ import OCAnnouncements from '../pages/oc/OCAnnouncements'
 import OCSponsors from '../pages/oc/OCSponsors'
 import OCPermissions from '../pages/oc/OCPermissions'
 import OCSiteSettings from '../pages/oc/OCSiteSettings'
+import OCMessages from '../pages/oc/OCMessages'
 
 export default function AppRoutes() {
   return (
@@ -73,6 +75,7 @@ export default function AppRoutes() {
         <Route path="/resources"      element={<Resources />} />
         <Route path="/opportunities"  element={<Opportunities />} />
         <Route path="/team"           element={<Team />} />
+        <Route path="/gallery"        element={<GalleryPublic />} />
         <Route path="/join"           element={<Contact />} />
       </Route>
 
@@ -116,6 +119,7 @@ export default function AppRoutes() {
           <Route path="/oc/sponsors"            element={<OCSponsors />} />
           <Route path="/oc/permissions"         element={<OCPermissions />} />
           <Route path="/oc/settings"            element={<OCSiteSettings />} />
+          <Route path="/oc/messages"            element={<OCMessages />} />
         </Route>
       </Route>
 

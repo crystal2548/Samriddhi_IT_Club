@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../../utils/supabase'
+import { useSiteSettings } from '../../context/SiteContext'
 
 export default function ProjectDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
   const [project, setProject] = useState(null)
   const [loading, setLoading] = useState(true)
+  const { settings } = useSiteSettings()
 
   useEffect(() => {
     async function fetchProject() {
@@ -117,7 +119,7 @@ export default function ProjectDetail() {
                   </div>
                   <div>
                     <p style={{ color: '#fff', fontSize: 14, fontWeight: 600 }}>{project.profiles?.full_name || 'Innovator'}</p>
-                    <p style={{ color: 'var(--text-muted)', fontSize: 12 }}>Samriddhi IT Club</p>
+                    <p style={{ color: 'var(--text-muted)', fontSize: 12 }}>{settings.club_name}</p>
                   </div>
                 </div>
               </div>

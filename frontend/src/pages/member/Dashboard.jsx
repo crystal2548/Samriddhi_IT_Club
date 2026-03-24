@@ -2,10 +2,12 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../../utils/supabase'
 import { useAuth } from '../../context/AuthContext'
+import { useSiteSettings } from '../../context/SiteContext'
 import { formatDateShort, formatDateTime } from '../../utils/formatDate'
 
 export default function Dashboard() {
   const { user, profile } = useAuth()
+  const { settings } = useSiteSettings()
   const [registrations, setRegistrations] = useState([])
   const [notices, setNotices] = useState([])
   const [loading, setLoading] = useState(true)
@@ -64,7 +66,7 @@ export default function Dashboard() {
           Welcome back, {profile?.full_name?.split(' ')[0] || 'Member'} 👋
         </h1>
         <p style={{ color: 'var(--text-muted)', fontSize: 13, marginTop: 4 }}>
-          Here's what's happening at Samriddhi IT Club.
+          Here's what's happening at {settings.club_name}.
         </p>
       </div>
 

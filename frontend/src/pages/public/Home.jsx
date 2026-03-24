@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../../utils/supabase'
 import { formatDateShort } from '../../utils/formatDate'
+import { useSiteSettings } from '../../context/SiteContext'
 
 const HERO_WORDS = ['INNOVATE.', 'CREATE.', 'COMPETE.', 'CONNECT.']
 
@@ -9,22 +10,26 @@ export default function Home() {
   const [events, setEvents]     = useState([])
   const [projects, setProjects] = useState([])
   const [posts, setPosts]       = useState([])
+  const [sponsors, setSponsors] = useState([])
   const [loading, setLoading]   = useState(true)
   const [wordIndex, setWordIndex]   = useState(0)
   const [displayed, setDisplayed]   = useState('')
   const [deleting, setDeleting]     = useState(false)
   const typingRef = useRef(null)
+  const { settings } = useSiteSettings()
 
   useEffect(() => {
     async function fetchAll() {
-      const [eventsRes, projectsRes, postsRes] = await Promise.all([
+      const [eventsRes, projectsRes, postsRes, sponsorsRes] = await Promise.all([
         supabase.from('events').select('*').in('status', ['upcoming', 'ongoing']).order('event_date', { ascending: true }).limit(3),
         supabase.from('projects').select('*').eq('is_featured', true).order('created_at', { ascending: false }).limit(3),
         supabase.from('blog_posts').select('id, title, slug, category, cover_image_url, read_time_mins, published_at, profiles(full_name)').eq('status', 'published').order('published_at', { ascending: false }).limit(3),
+        supabase.from('sponsors').select('*').eq('is_active', true).order('tier'),
       ])
       setEvents(eventsRes.data || [])
       setProjects(projectsRes.data || [])
       setPosts(postsRes.data || [])
+      setSponsors(sponsorsRes.data || [])
       setLoading(false)
     }
     fetchAll()
@@ -131,12 +136,12 @@ export default function Home() {
 
             {/* Subtitle */}
             <p style={{ color: 'var(--text-secondary)', fontSize: 14, lineHeight: 1.75, maxWidth: 480, marginBottom: 36, textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 500 }}>
-              Join Samriddhi's premier community of developers, designers, and tech enthusiasts. We turn complex problems into elegant solutions through collaborative excellence.
+              {settings.tagline || "Join premier community of developers, designers, and tech enthusiasts. We turn complex problems into elegant solutions through collaborative excellence."}
             </p>
 
             {/* Buttons */}
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-              <Link to="/join" className="btn-primary" style={{ fontSize: 13, padding: '12px 28px' }}>Explore Opportunities</Link>
+              <Link to="/join" className="btn-primary" style={{ fontSize: 13, padding: '12px 28px' }}>{settings.hero_cta_text || 'Join Now'}</Link>
               <Link to="/projects" className="btn-outline" style={{ fontSize: 13, padding: '12px 28px' }}>View Projects</Link>
             </div>
           </div>
@@ -207,7 +212,7 @@ export default function Home() {
                 Join 120+ active innovators already onboard. Get access to workshops, hackathons, industry connections, and real project experience.
               </p>
               <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                <Link to="/join" className="btn-primary" style={{ fontSize: 13, padding: '12px 28px' }}>Join Samriddhi Now</Link>
+                <Link to="/join" className="btn-primary" style={{ fontSize: 13, padding: '12px 28px' }}>{settings.hero_cta_text || 'Join Now'}</Link>
                 <Link to="/events" className="btn-outline" style={{ fontSize: 13, padding: '12px 28px' }}>Browse Events</Link>
               </div>
             </div>

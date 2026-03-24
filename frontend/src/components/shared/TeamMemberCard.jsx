@@ -1,4 +1,7 @@
+import { useSiteSettings } from '../../context/SiteContext'
+
 export default function TeamMemberCard({ member, variant = 'grid' }) {
+  const { settings } = useSiteSettings()
   const isLeadership = variant === 'leadership'
   
   return (
@@ -29,7 +32,7 @@ export default function TeamMemberCard({ member, variant = 'grid' }) {
       </p>
 
       <p style={{ color: 'var(--text-muted)', fontSize: 13, lineHeight: 1.6, marginBottom: 20, display: isLeadership ? 'block' : '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-        {member.bio || `Passionate member of Samriddhi IT Club working as a ${member.oc_position?.replace(/_/g, ' ') || member.role}.`}
+        {member.bio || `Passionate member of ${settings.club_name} working as a ${member.oc_position?.replace(/_/g, ' ') || member.role}.`}
       </p>
 
       <div style={{ display: 'flex', justifyContent: 'center', gap: 12 }}>

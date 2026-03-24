@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { supabase } from '../../utils/supabase'
 import { formatDateTime, formatDateShort } from '../../utils/formatDate'
@@ -22,6 +23,7 @@ const STATUS_CONFIG = {
 }
 
 export default function Events() {
+  const navigate = useNavigate()
   const { user } = useAuth()
   const [events, setEvents] = useState([])
   const [loading, setLoading] = useState(true)
@@ -189,7 +191,7 @@ export default function Events() {
                     style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden', display: 'flex', flexDirection: 'column', transition: 'border-color 0.2s, transform 0.2s', cursor: 'pointer' }}
                     onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(0,212,255,0.25)'; e.currentTarget.style.transform = 'translateY(-4px)' }}
                     onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.transform = 'translateY(0)' }}
-                    onClick={() => setSelected(event)}
+                    onClick={() => navigate(`/events/${event.id}`)}
                   >
                     {/* Banner */}
                     <div style={{ height: 180, background: 'linear-gradient(135deg,#0D1829,#142040)', position: 'relative', overflow: 'hidden' }}>

@@ -1,10 +1,14 @@
+import { useSiteSettings } from '../../context/SiteContext'
+
 export default function Signup() {
+  const { settings } = useSiteSettings()
+
   return (
     <div className="min-h-screen flex items-center justify-center p-6" style={{ background: 'var(--bg-primary)' }}>
       <div className="max-w-md w-full p-8 rounded-2xl" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
         <h2 className="text-2xl font-bold mb-4" style={{ color: 'var(--text-primary)' }}>Sign Up</h2>
         <p className="mb-6" style={{ color: 'var(--text-secondary)' }}>
-          Join Samriddhi IT Club today.
+          Join {settings.club_name} today.
         </p>
         <button
           onClick={() => window.history.back()}
