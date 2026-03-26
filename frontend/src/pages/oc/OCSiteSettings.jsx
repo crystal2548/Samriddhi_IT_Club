@@ -1,19 +1,23 @@
 import { useEffect, useState, useRef } from 'react'
 import { supabase } from '../../utils/supabase'
 import { useAuth } from '../../context/AuthContext'
+import { useSiteSettings } from '../../context/SiteContext'
 
 export default function OCSiteSettings() {
   const { profile } = useAuth()
+  const { refetch } = useSiteSettings()
   const [settings, setSettings] = useState({ club_name: '', tagline: '', logo_url: '', hero_cta_text: '', contact_email: '', instagram_url: '', linkedin_url: '', github_org_url: '', maintenance_mode: false })
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [saveError, setSaveError] = useState('')
 
   const isPresident = profile?.oc_position === 'president'
 
   useEffect(() => {
-    supabase.from('site_settings').select('*').eq('id', 1).single().then(({ data }) => {
+    supabase.from('site_settings').select('*').eq('id', 1).single().then(({ data, error }) => {
       if (data) setSettings(data)
+      if (error) console.error('Failed to load site settings:', error)
       setLoading(false)
     })
   }, [])
@@ -21,9 +25,19 @@ export default function OCSiteSettings() {
   async function handleSave() {
     if (!isPresident) return
     setSaving(true)
-    await supabase.from('site_settings').upsert({ ...settings, id: 1, updated_at: new Date().toISOString() })
-    setSaving(false); setSaved(true)
-    setTimeout(() => setSaved(false), 3000)
+    setSaveError('')
+    const { error } = await supabase
+      .from('site_settings')
+      .upsert({ ...settings, id: 1, updated_at: new Date().toISOString() })
+    setSaving(false)
+    if (error) {
+      console.error('Save failed:', error)
+      setSaveError(`Save failed: ${error.message}`)
+    } else {
+      setSaved(true)
+      setTimeout(() => setSaved(false), 3000)
+      await refetch()   // ← propagate changes globally without page reload
+    }
   }
 
   if (!isPresident) return (
@@ -71,6 +85,35 @@ export default function OCSiteSettings() {
             </div>
           </SettingsSection>
 
+          <SettingsSection title="About Page Content">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <Textarea
+                label="About Hero Description"
+                value={settings.about_description}
+                onChange={v => setSettings(p => ({ ...p, about_description: v }))}
+                placeholder="Short description that appears in the About page hero section..."
+                rows={3}
+              />
+              <Textarea
+                label="Our Story"
+                value={settings.about_story}
+                onChange={v => setSettings(p => ({ ...p, about_story: v }))}
+                placeholder="The full story paragraph shown in the 'Our Story' section..."
+                rows={5}
+              />
+            </div>
+          </SettingsSection>
+
+          <SettingsSection title="Stats Bar (About & Home pages)">
+            <p style={{ color: 'var(--text-muted)', fontSize: 12, marginBottom: 16 }}>These numbers appear in the stats bar across the site. Include the + symbol if needed (e.g. "120+").</p>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+              <Field label="Active Members" value={settings.stat_members} onChange={v => setSettings(p => ({ ...p, stat_members: v }))} placeholder="e.g. 120+" />
+              <Field label="Annual Events" value={settings.stat_events} onChange={v => setSettings(p => ({ ...p, stat_events: v }))} placeholder="e.g. 30+" />
+              <Field label="Alumni Network" value={settings.stat_alumni} onChange={v => setSettings(p => ({ ...p, stat_alumni: v }))} placeholder="e.g. 500+" />
+              <Field label="Industry Partners" value={settings.stat_partners} onChange={v => setSettings(p => ({ ...p, stat_partners: v }))} placeholder="e.g. 12+" />
+            </div>
+          </SettingsSection>
+
           <SettingsSection title="Maintenance">
             <label style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}>
               <div style={{ position: 'relative', width: 44, height: 24 }}>
@@ -89,6 +132,11 @@ export default function OCSiteSettings() {
           <button onClick={handleSave} disabled={saving} style={{ padding: '12px 28px', background: 'var(--cyan)', border: 'none', borderRadius: 8, color: '#0A0E1A', fontSize: 13, fontWeight: 700, cursor: 'pointer', width: 'fit-content' }}>
             {saving ? 'Saving...' : 'Save Settings'}
           </button>
+          {saveError && (
+            <div style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 8, padding: '10px 16px', color: '#EF4444', fontSize: 12 }}>
+              {saveError}
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -116,6 +164,20 @@ function Field({ label, value, onChange, type = 'text', placeholder = '' }) {
     </div>
   )
 }
+
+function Textarea({ label, value, onChange, placeholder = '', rows = 4 }) {
+  return (
+    <div>
+      <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>{label}</label>
+      <textarea rows={rows} value={value || ''} onChange={e => onChange(e.target.value)} placeholder={placeholder}
+        style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', borderRadius: 8, padding: '9px 12px', color: '#fff', fontSize: 13, outline: 'none', fontFamily: 'Inter, sans-serif', resize: 'vertical', lineHeight: 1.7 }}
+        onFocus={e => e.target.style.borderColor = 'rgba(0,212,255,0.4)'}
+        onBlur={e => e.target.style.borderColor = 'var(--border)'}
+      />
+    </div>
+  )
+}
+
 
 function LogoUpload({ label, value, onChange }) {
   const fileRef = useRef(null)

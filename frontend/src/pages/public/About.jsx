@@ -104,11 +104,11 @@ export default function About() {
           </h1>
 
           <p style={{ color: 'var(--text-secondary)', fontSize: 14, lineHeight: 1.8, maxWidth: 560, margin: '0 auto 36px', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 500 }}>
-            {settings.club_name} is a premier community of developers, designers, and tech entrepreneurs dedicated to shaping Nepal's digital future through collaboration, innovation, and excellence.
+            {settings.about_description || `${settings.club_name} is a premier community of developers, designers, and tech entrepreneurs dedicated to shaping Nepal's digital future through collaboration, innovation, and excellence.`}
           </p>
 
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Link to="/join" className="btn-primary" style={{ fontSize: 13, padding: '12px 28px' }}>{settings.hero_cta_text || 'Join the Club'}</Link>
+            <Link to="/apply" className="btn-primary" style={{ fontSize: 13, padding: '12px 28px' }}>{settings.hero_cta_text || 'Join the Club'}</Link>
             <Link to="/team" className="btn-outline" style={{ fontSize: 13, padding: '12px 28px' }}>Meet the Team</Link>
           </div>
         </div>
@@ -119,10 +119,10 @@ export default function About() {
         <div className="container mx-auto px-6">
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)' }}>
             {[
-              { n: '120+', l: 'Active Members' },
-              { n: '30+',  l: 'Annual Events' },
-              { n: '500+', l: 'Alumni Network' },
-              { n: '12+',  l: 'Industry Partners' },
+              { n: settings.stat_members || '120+', l: 'Active Members' },
+              { n: settings.stat_events  || '30+',  l: 'Annual Events' },
+              { n: settings.stat_alumni  || '500+', l: 'Alumni Network' },
+              { n: settings.stat_partners|| '12+',  l: 'Industry Partners' },
             ].map((s, i) => (
               <div key={i} style={{ padding: '36px 24px', textAlign: 'center', borderRight: i < 3 ? '1px solid var(--border)' : 'none' }}>
                 <div style={{ fontFamily: 'Barlow Condensed, sans-serif', fontSize: 44, fontWeight: 800, color: 'var(--cyan)', letterSpacing: '-0.02em', lineHeight: 1, marginBottom: 8 }}>{s.n}</div>
@@ -166,13 +166,10 @@ export default function About() {
             <div>
               <p style={{ color: 'var(--cyan)', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>Our Journey</p>
               <h2 style={{ fontFamily: 'Barlow Condensed, sans-serif', fontSize: 'clamp(28px,4vw,36px)', fontWeight: 800, color: '#fff', textTransform: 'uppercase', letterSpacing: '0.02em', marginBottom: 24 }}>OUR STORY</h2>
-              <p style={{ color: 'var(--text-secondary)', fontSize: 14, lineHeight: 1.85, marginBottom: 20 }}>
-                Born from a shared passion for technology, {settings.club_name} began as a small group of students who believed that the best way to learn was to build together. What started as informal coding sessions quickly grew into a dynamic student organization.
+              <p style={{ color: 'var(--text-secondary)', fontSize: 14, lineHeight: 1.85, marginBottom: 32 }}>
+                {settings.about_story || `Born from a shared passion for technology, ${settings.club_name} began as a small group of students who believed that the best way to learn was to build together. Today, we are a thriving community of active members who collectively drive innovation through real-world projects, industry-level hackathons, curated workshops, and meaningful networking events.`}
               </p>
-              <p style={{ color: 'var(--text-muted)', fontSize: 14, lineHeight: 1.85, marginBottom: 32 }}>
-                Today, we are a thriving community of 120+ active members who collectively drive innovation through real-world projects, industry-level hackathons, curated workshops, and meaningful networking events. We don't just write code — we create the future.
-              </p>
-              <Link to="/join" className="btn-primary" style={{ fontSize: 13, padding: '12px 28px' }}>Be Part of the Story →</Link>
+              <Link to="/apply" className="btn-primary" style={{ fontSize: 13, padding: '12px 28px' }}>Be Part of the Story →</Link>
             </div>
 
             {/* Right: timeline */}
@@ -304,7 +301,7 @@ export default function About() {
                 Join 120+ active innovators already on board. Get access to workshops, hackathons, industry connections, and real project experience. The future is built by those who show up.
               </p>
               <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                <Link to="/join" className="btn-primary" style={{ fontSize: 13, padding: '12px 28px' }}>Apply Now</Link>
+                <Link to="/apply" className="btn-primary" style={{ fontSize: 13, padding: '12px 28px' }}>Apply Now</Link>
                 <Link to="/events" className="btn-outline" style={{ fontSize: 13, padding: '12px 28px' }}>Browse Events</Link>
               </div>
             </div>

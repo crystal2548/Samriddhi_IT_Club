@@ -122,6 +122,7 @@ export const NAV_LINKS = [
   { label: 'Resources',     path: '/resources' },
   { label: 'Gallery',       path: '/gallery' },
   { label: 'Team',          path: '/team' },
+  { label: 'Contact',       path: '/contact' },
 ]
 
 // ─── Member Sidebar Links ────────────────────────────────────

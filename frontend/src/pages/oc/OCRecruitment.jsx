@@ -18,11 +18,40 @@ export default function OCRecruitment() {
   }, [])
 
   async function handleSave() {
-    if (!form.title) return
+    if (!form.title) {
+      alert('Please enter a title for the recruitment cycle.')
+      return
+    }
     setSaving(true)
-    const { data } = await supabase.from('recruitment_cycles').insert({ ...form, created_by: profile?.id }).select().single()
-    if (data) setCycles(prev => [data, ...prev])
-    setShowForm(false); setForm(EMPTY); setSaving(false)
+    console.log('Saving recruitment cycle:', form)
+
+    // Sanitize dates: empty strings should be null
+    const payload = {
+      ...form,
+      opens_at: form.opens_at || null,
+      closes_at: form.closes_at || null,
+      created_by: profile?.id
+    }
+
+    const { data, error } = await supabase
+      .from('recruitment_cycles')
+      .insert(payload)
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Error creating recruitment cycle:', error)
+      alert(`Failed to create cycle: ${error.message}`)
+      setSaving(false)
+      return
+    }
+
+    if (data) {
+      setCycles(prev => [data, ...prev])
+      setShowForm(false)
+      setForm(EMPTY)
+    }
+    setSaving(false)
   }
 
   async function updateStatus(id, status) {

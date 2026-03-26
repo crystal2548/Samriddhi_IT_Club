@@ -128,9 +128,9 @@ export default function Footer() {
 
           {/* Join */}
           <FooterCol title="Join" links={[
-            { label: 'Apply Now',     to: '/join' },
+            { label: 'Apply Now',     to: '/apply' },
             { label: 'Member Login',  to: '/login' },
-            { label: 'Contact Us',    to: '/join#contact' },
+            { label: 'Contact Us',    to: '/contact' },
           ]} />
 
         </div>

@@ -117,7 +117,7 @@ export default function Contact() {
               <form onSubmit={handleSubmit} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
                 <div style={{ gridColumn: 'span 2' }}>
                   <h3 style={{ color: '#fff', fontSize: 20, fontWeight: 700, marginBottom: 8 }}>Send us a Message</h3>
-                  <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 24 }}>Have a question or want to join? Just fill out the form below.</p>
+                  <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 24 }}>Have a question or inquiry? Just fill out the form below.</p>
                 </div>
 
                 <div style={{ gridColumn: 'span 1' }}>
@@ -133,7 +133,6 @@ export default function Contact() {
                   <label style={LS}>Subject</label>
                   <select value={form.subject} onChange={e => setForm(p => ({ ...p, subject: e.target.value }))} style={SS}>
                     <option>General Inquiry</option>
-                    <option>Join the Club</option>
                     <option>Event Sponsorship</option>
                     <option>Technical Support</option>
                   </select>

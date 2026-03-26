@@ -272,7 +272,7 @@ export default function Navbar() {
             ) : (
               /* ── Logged out — Join Us button ─────────── */
               <Link
-                to="/join"
+                to="/apply"
                 className="text-sm font-bold px-4 py-2 rounded-lg transition-all duration-200"
                 style={{
                   color: 'var(--bg-primary)',
@@ -365,7 +365,7 @@ export default function Navbar() {
                 </button>
               </>
             ) : (
-              <Link to="/join" className="btn-primary text-center justify-center">
+              <Link to="/apply" className="btn-primary text-center justify-center">
                 JOIN US
               </Link>
             )}

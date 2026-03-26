@@ -16,7 +16,10 @@ app.use(express.json())
 
 // Routes
 const uploadRoutes = require('./routes/uplode')
+const inviteRoutes = require('./routes/inviteRoutes')
+
 app.use('/api/upload', uploadRoutes)
+app.use('/api/invite', inviteRoutes)
 
 // Test route
 app.get('/', (req, res) => {

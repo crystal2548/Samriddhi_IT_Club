@@ -141,7 +141,7 @@ export default function Home() {
 
             {/* Buttons */}
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-              <Link to="/join" className="btn-primary" style={{ fontSize: 13, padding: '12px 28px' }}>{settings.hero_cta_text || 'Join Now'}</Link>
+              <Link to="/apply" className="btn-primary" style={{ fontSize: 13, padding: '12px 28px' }}>{settings.hero_cta_text || 'Join Now'}</Link>
               <Link to="/projects" className="btn-outline" style={{ fontSize: 13, padding: '12px 28px' }}>View Projects</Link>
             </div>
           </div>
@@ -153,10 +153,10 @@ export default function Home() {
         <div className="container mx-auto px-6">
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)' }}>
             {[
-              { n: '6+', l: 'Years of excellence' },
-              { n: '30+', l: 'Annual events' },
-              { n: '500+', l: 'Alumni network' },
-              { n: '12+', l: 'Industry partners' },
+              { n: settings.stat_members  || '120+', l: 'Active members' },
+              { n: settings.stat_events   || '30+',  l: 'Annual events' },
+              { n: settings.stat_alumni   || '500+', l: 'Alumni network' },
+              { n: settings.stat_partners || '12+',  l: 'Industry partners' },
             ].map((s, i) => (
               <div key={i} style={{ padding: '36px 24px', textAlign: 'center', borderRight: i < 3 ? '1px solid var(--border)' : 'none' }}>
                 <div style={{ fontFamily: 'Barlow Condensed, sans-serif', fontSize: 44, fontWeight: 800, color: 'var(--cyan)', letterSpacing: '-0.02em', lineHeight: 1, marginBottom: 8 }}>{s.n}</div>
@@ -212,7 +212,7 @@ export default function Home() {
                 Join 120+ active innovators already onboard. Get access to workshops, hackathons, industry connections, and real project experience.
               </p>
               <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                <Link to="/join" className="btn-primary" style={{ fontSize: 13, padding: '12px 28px' }}>{settings.hero_cta_text || 'Join Now'}</Link>
+                <Link to="/apply" className="btn-primary" style={{ fontSize: 13, padding: '12px 28px' }}>{settings.hero_cta_text || 'Join Now'}</Link>
                 <Link to="/events" className="btn-outline" style={{ fontSize: 13, padding: '12px 28px' }}>Browse Events</Link>
               </div>
             </div>

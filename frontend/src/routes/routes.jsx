@@ -27,6 +27,7 @@ import NotFound from '../pages/public/NotFound'
 
 // ─── Auth Pages ─────────────────────────────────────────────
 import Login from '../pages/auth/Login'
+import Apply from '../pages/auth/Apply'
 import Signup from '../pages/auth/Signup'
 import ForgotPassword from '../pages/auth/ForgotPassword'
 
@@ -76,7 +77,9 @@ export default function AppRoutes() {
         <Route path="/opportunities"  element={<Opportunities />} />
         <Route path="/team"           element={<Team />} />
         <Route path="/gallery"        element={<GalleryPublic />} />
-        <Route path="/join"           element={<Contact />} />
+        <Route path="/apply"          element={<Apply />} />
+        <Route path="/join"           element={<Navigate to="/apply" replace />} />
+        <Route path="/contact"        element={<Contact />} />
       </Route>
 
       {/* ─── Auth Routes (no Navbar/Footer) ───────────────────── */}
