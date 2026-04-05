@@ -1,5 +1,6 @@
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import { useSiteSettings } from '../../context/SiteContext'
 
 const NAV = [
   {
@@ -59,6 +60,7 @@ const ICONS = {
 
 export default function OCSidebar({ badges = {} }) {
   const { profile } = useAuth()
+  const { settings } = useSiteSettings()
   const location = useLocation()
 
   return (
@@ -74,22 +76,26 @@ export default function OCSidebar({ badges = {} }) {
       {/* Logo */}
       <div style={{ padding: '20px 16px 16px', borderBottom: '1px solid var(--border)' }}>
         <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div style={{ width: 30, height: 30, borderRadius: 8, background: 'rgba(0,212,255,0.08)', border: '1px solid rgba(0,212,255,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-              <rect x="6" y="6" width="4" height="4" rx="1" stroke="var(--cyan)" strokeWidth="1.5"/>
-              <line x1="8" y1="1" x2="8" y2="6" stroke="var(--cyan)" strokeWidth="1.5" strokeLinecap="round"/>
-              <line x1="8" y1="10" x2="8" y2="15" stroke="var(--cyan)" strokeWidth="1.5" strokeLinecap="round"/>
-              <line x1="1" y1="8" x2="6" y2="8" stroke="var(--cyan)" strokeWidth="1.5" strokeLinecap="round"/>
-              <line x1="10" y1="8" x2="15" y2="8" stroke="var(--cyan)" strokeWidth="1.5" strokeLinecap="round"/>
-              <circle cx="8" cy="1" r="1" fill="var(--cyan)"/>
-              <circle cx="8" cy="15" r="1" fill="var(--cyan)"/>
-              <circle cx="1" cy="8" r="1" fill="var(--pink)"/>
-              <circle cx="15" cy="8" r="1" fill="var(--pink)"/>
-            </svg>
+          <div style={{ width: 30, height: 30, borderRadius: 8, background: 'rgba(0,212,255,0.08)', border: '1px solid rgba(0,212,255,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
+            {settings?.logo_url ? (
+              <img src={settings.logo_url} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+            ) : (
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                <rect x="6" y="6" width="4" height="4" rx="1" stroke="var(--cyan)" strokeWidth="1.5"/>
+                <line x1="8" y1="1" x2="8" y2="6" stroke="var(--cyan)" strokeWidth="1.5" strokeLinecap="round"/>
+                <line x1="8" y1="10" x2="8" y2="15" stroke="var(--cyan)" strokeWidth="1.5" strokeLinecap="round"/>
+                <line x1="1" y1="8" x2="6" y2="8" stroke="var(--cyan)" strokeWidth="1.5" strokeLinecap="round"/>
+                <line x1="10" y1="8" x2="15" y2="8" stroke="var(--cyan)" strokeWidth="1.5" strokeLinecap="round"/>
+                <circle cx="8" cy="1" r="1" fill="var(--cyan)"/>
+                <circle cx="8" cy="15" r="1" fill="var(--cyan)"/>
+                <circle cx="1" cy="8" r="1" fill="var(--pink)"/>
+                <circle cx="15" cy="8" r="1" fill="var(--pink)"/>
+              </svg>
+            )}
           </div>
           <div>
             <div style={{ fontSize: 11, fontWeight: 800, color: '#fff', letterSpacing: '0.04em', lineHeight: 1.2 }}>
-              SAMRIDDHI
+              {settings?.club_name?.toUpperCase() || 'SAMRIDDHI'}
             </div>
             <div style={{ fontSize: 9, color: 'var(--cyan)', fontWeight: 700, letterSpacing: '0.06em' }}>
               OC DASHBOARD

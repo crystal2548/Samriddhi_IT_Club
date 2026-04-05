@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../utils/supabase'
+import { formatDateTime } from '../../utils/formatDate'
 
 export default function Gallery() {
   const [images, setImages] = useState([])

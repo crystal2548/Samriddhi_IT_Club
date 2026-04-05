@@ -44,6 +44,18 @@ export default function OCMembers() {
     setMembers(prev => prev.map(m => m.id === id ? { ...m, is_active: !current } : m))
   }
 
+  async function deleteMember(id, name) {
+    if (!window.confirm(`Are you sure you want to PERMANENTLY delete ${name}? This action cannot be undone.`)) return
+    
+    const { error } = await supabase.from('profiles').delete().eq('id', id)
+    if (error) {
+      alert("Error deleting member: " + error.message)
+      return
+    }
+    
+    setMembers(prev => prev.filter(m => m.id !== id))
+  }
+
   const filtered = members.filter(m => {
     const matchesSearch = m.full_name?.toLowerCase().includes(search.toLowerCase()) || m.email?.toLowerCase().includes(search.toLowerCase())
     const matchesRole = roleFilter === 'all' || m.role === roleFilter
@@ -91,7 +103,7 @@ export default function OCMembers() {
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border)' }}>
                 {['Member','Role / Position','Year','Status','Joined','Actions'].map(h => (
-                  <th key={h} style={{ padding: '10px 16px', textAlign: 'left', fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', whiteSpace: 'nowrap' }}>{h}</th>
+                  <th key={h} style={{ padding: '10px 16px', textAlign: h === 'Actions' ? 'right' : 'left', fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', whiteSpace: 'nowrap' }}>{h}</th>
                 ))}
               </tr>
             </thead>
@@ -143,27 +155,31 @@ export default function OCMembers() {
                   <td style={{ padding: '12px 16px', color: 'var(--text-muted)', fontSize: 11, fontFamily: 'JetBrains Mono, monospace', whiteSpace: 'nowrap' }}>{formatDate(m.created_at)}</td>
                   <td style={{ padding: '12px 16px' }}>
                     {isPresident && (
-                      <div style={{ display: 'flex', gap: 6 }}>
+                      <div style={{ display: 'flex', gap: 4, flexWrap: 'nowrap', justifyContent: 'flex-end' }}>
                         {editId === m.id ? (
                           <>
                             <button onClick={() => saveRole(m.id)} disabled={saving}
-                              style={{ padding: '4px 10px', borderRadius: 6, background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.25)', color: '#10B981', fontSize: 11, cursor: 'pointer' }}>
+                              style={{ padding: '4px 8px', borderRadius: 6, background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.25)', color: '#10B981', fontSize: 11, cursor: 'pointer', whiteSpace: 'nowrap' }}>
                               {saving ? '...' : 'Save'}
                             </button>
                             <button onClick={() => setEditId(null)}
-                              style={{ padding: '4px 10px', borderRadius: 6, background: 'transparent', border: '1px solid var(--border)', color: 'var(--text-muted)', fontSize: 11, cursor: 'pointer' }}>
+                              style={{ padding: '4px 8px', borderRadius: 6, background: 'transparent', border: '1px solid var(--border)', color: 'var(--text-muted)', fontSize: 11, cursor: 'pointer', whiteSpace: 'nowrap' }}>
                               Cancel
                             </button>
                           </>
                         ) : (
                           <>
                             <button onClick={() => { setEditId(m.id); setEditRole(m.role); setEditPosition(m.oc_position || '') }}
-                              style={{ padding: '4px 10px', borderRadius: 6, background: 'rgba(0,212,255,0.08)', border: '1px solid rgba(0,212,255,0.2)', color: 'var(--cyan)', fontSize: 11, cursor: 'pointer' }}>
-                              Edit role
+                              style={{ padding: '4px 8px', borderRadius: 6, background: 'rgba(0,212,255,0.08)', border: '1px solid rgba(0,212,255,0.2)', color: 'var(--cyan)', fontSize: 11, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                              Edit
                             </button>
                             <button onClick={() => toggleActive(m.id, m.is_active)}
-                              style={{ padding: '4px 10px', borderRadius: 6, background: m.is_active ? 'rgba(239,68,68,0.08)' : 'rgba(16,185,129,0.08)', border: `1px solid ${m.is_active ? 'rgba(239,68,68,0.25)' : 'rgba(16,185,129,0.25)'}`, color: m.is_active ? '#EF4444' : '#10B981', fontSize: 11, cursor: 'pointer' }}>
+                              style={{ padding: '4px 8px', borderRadius: 6, background: m.is_active ? 'rgba(239,68,68,0.08)' : 'rgba(16,185,129,0.08)', border: `1px solid ${m.is_active ? 'rgba(239,68,68,0.25)' : 'rgba(16,185,129,0.25)'}`, color: m.is_active ? '#EF4444' : '#10B981', fontSize: 11, cursor: 'pointer', whiteSpace: 'nowrap' }}>
                               {m.is_active ? 'Suspend' : 'Activate'}
+                            </button>
+                            <button onClick={() => deleteMember(m.id, m.full_name)}
+                              style={{ padding: '4px 8px', borderRadius: 6, background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', color: '#EF4444', fontSize: 11, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                              Delete
                             </button>
                           </>
                         )}
