@@ -1,44 +1,43 @@
-import { useEffect, useState } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { supabase } from '../../utils/supabase'
 import { useAuth } from '../../context/AuthContext'
 import { useSiteSettings } from '../../context/SiteContext'
-import { formatDateShort, formatDateTime } from '../../utils/formatDate'
+import { formatDateShort } from '../../utils/formatters'
 
 export default function Dashboard() {
   const { user, profile } = useAuth()
   const { settings } = useSiteSettings()
-  const [registrations, setRegistrations] = useState([])
-  const [notices, setNotices] = useState([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    if (user) fetchAll()
-  }, [user])
-
-  async function fetchAll() {
-    const [regsRes, noticesRes] = await Promise.all([
-      supabase
-        .from('event_registrations')
-        .select('*, events(id, title, type, event_date, location, status, banner_url)')
-        .eq('member_id', user.id)
-        .order('registered_at', { ascending: false }),
-      supabase
-        .from('announcements')
-        .select('*')
-        .in('audience', ['all', profile?.role === 'executive' ? 'executive' : 'general'])
-        .order('is_pinned', { ascending: false })
-        .order('created_at', { ascending: false })
-        .limit(5),
-    ])
-    setRegistrations(regsRes.data || [])
-    setNotices(noticesRes.data || [])
-    setLoading(false)
-  }
+  const queryClient = useQueryClient()
+  const { data: { registrations = [], notices = [] } = {}, isLoading: loading } = useQuery({
+    queryKey: ['dashboard', user?.id],
+    queryFn: async () => {
+      const [regsRes, noticesRes] = await Promise.all([
+        supabase
+          .from('event_registrations')
+          .select('*, events(id, title, type, event_date, location, status, banner_url)')
+          .eq('member_id', user.id)
+          .order('registered_at', { ascending: false }),
+        supabase
+          .from('announcements')
+          .select('*')
+          .in('audience', ['all', profile?.role === 'executive' ? 'executive' : 'general'])
+          .order('is_pinned', { ascending: false })
+          .order('created_at', { ascending: false })
+          .limit(5),
+      ])
+      return {
+        registrations: regsRes.data || [],
+        notices: noticesRes.data || []
+      }
+    },
+    enabled: !!user?.id
+  })
 
   async function handleUnregister(registrationId) {
+    if (!confirm('Are you sure you want to unregister?')) return
     await supabase.from('event_registrations').delete().eq('id', registrationId)
-    setRegistrations(prev => prev.filter(r => r.id !== registrationId))
+    queryClient.invalidateQueries(['dashboard', user?.id])
   }
 
   const upcoming = registrations.filter(r => ['upcoming', 'ongoing'].includes(r.events?.status))
@@ -49,10 +48,7 @@ export default function Dashboard() {
     seminar: '#00BFA5', bootcamp: '#A78BFA', social: '#F59E0B',
   }
 
-  const getInitials = (name) => {
-    if (!name) return 'M'
-    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
-  }
+
 
   return (
     <div style={{ maxWidth: 960 }}>

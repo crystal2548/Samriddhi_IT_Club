@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { supabase } from '../../utils/supabase'
 import { useAuth } from '../../context/AuthContext'
-import { toSlug, formatDateTime } from '../../utils/formatDate'
+import { toSlug, formatDateTime } from '../../utils/formatters'
 
 const CATEGORY_OPTIONS = [
   { label: 'Development', value: 'development' },

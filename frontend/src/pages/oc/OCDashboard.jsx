@@ -1,110 +1,80 @@
-import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import { supabase } from '../../utils/supabase'
 import { useAuth } from '../../context/AuthContext'
-import { formatDate } from '../../utils/formatDate'
+import { formatDate } from '../../utils/formatters'
 
 export default function OCDashboard() {
   const { profile } = useAuth()
-  const [stats, setStats] = useState({ members: 0, applications: 0, events: 0, permissions: 0, messages: 0 })
-  const [applications, setApplications] = useState([])
-  const [messages, setMessages] = useState([])
-  const [permRequests, setPermRequests] = useState([])
-  const [recentMembers, setRecentMembers] = useState([])
-  const [loading, setLoading] = useState(true)
+  
+  const { data, isLoading: loading } = useQuery({
+    queryKey: ['oc-dashboard-stats'],
+    queryFn: async () => {
+      const [membersRes, appsRes, eventsRes, permsRes, contactRes, recentRes, permReqRes, pendingAppsRes, recentMsgsRes] = await Promise.all([
+        supabase.from('profiles').select('id', { count: 'exact', head: true }),
+        supabase.from('applications').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+        supabase.from('events').select('id', { count: 'exact', head: true }).in('status', ['upcoming', 'ongoing']),
+        supabase.from('permission_requests').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+        supabase.from('contact_messages').select('id', { count: 'exact', head: true }),
+        supabase.from('profiles').select('id, full_name, role, college_year, created_at').order('created_at', { ascending: false }).limit(5),
+        supabase.from('permission_requests').select('*, profiles!requester_id(full_name, oc_position)').eq('status', 'pending').order('created_at', { ascending: false }).limit(5),
+        supabase.from('applications').select('*').eq('status', 'pending').order('created_at', { ascending: false }).limit(8),
+        supabase.from('contact_messages').select('*').order('created_at', { ascending: false }).limit(5)
+      ])
 
-  useEffect(() => {
-    fetchAll()
-  }, [])
-
-  async function fetchAll() {
-    const [membersRes, appsRes, eventsRes, permsRes, contactRes, recentRes, permReqRes] = await Promise.all([
-      supabase.from('profiles').select('id', { count: 'exact', head: true }),
-      supabase.from('applications').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
-      supabase.from('events').select('id', { count: 'exact', head: true }).in('status', ['upcoming', 'ongoing']),
-      supabase.from('permission_requests').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
-      supabase.from('contact_messages').select('id', { count: 'exact', head: true }),
-      supabase.from('profiles').select('id, full_name, role, college_year, created_at').order('created_at', { ascending: false }).limit(5),
-      supabase.from('permission_requests').select('*, profiles!requester_id(full_name, oc_position)').eq('status', 'pending').order('created_at', { ascending: false }).limit(5),
-    ])
-
-    setStats({
-      members: membersRes.count || 0,
-      applications: appsRes.count || 0,
-      events: eventsRes.count || 0,
-      permissions: permsRes.count || 0,
-      messages: contactRes.count || 0,
-    })
-
-    // Fetch pending applications and recent messages
-    const [pendingApps, recentMsgs] = await Promise.all([
-      supabase.from('applications').select('*').eq('status', 'pending').order('created_at', { ascending: false }).limit(8),
-      supabase.from('contact_messages').select('*').order('created_at', { ascending: false }).limit(5)
-    ])
-
-    setApplications(pendingApps.data || [])
-    setMessages(recentMsgs.data || [])
-    setRecentMembers(recentRes.data || [])
-    setPermRequests(permReqRes.data || [])
-    setLoading(false)
-  }
-
-  async function handleApplication(id, status) {
-    await supabase.from('applications').update({ status, reviewed_by: profile?.id, reviewed_at: new Date().toISOString() }).eq('id', id)
-    setApplications(prev => prev.filter(a => a.id !== id))
-    setStats(prev => ({ ...prev, applications: prev.applications - 1 }))
-  }
-
-  async function handlePermission(id, status) {
-    const req = permRequests.find(p => p.id === id)
-    await supabase.from('permission_requests').update({ status, reviewed_by: profile?.id, reviewed_at: new Date().toISOString() }).eq('id', id)
-
-    // If approved, add permission to the requester's profile
-    if (status === 'approved' && req) {
-      const { data: prof } = await supabase.from('profiles').select('extra_permissions').eq('id', req.requester_id).single()
-      const existing = prof?.extra_permissions || []
-      if (!existing.includes(req.permission_requested)) {
-        await supabase.from('profiles').update({ extra_permissions: [...existing, req.permission_requested] }).eq('id', req.requester_id)
+      return {
+        stats: {
+          members: membersRes.count || 0,
+          applications: appsRes.count || 0,
+          events: eventsRes.count || 0,
+          permissions: permsRes.count || 0,
+          messages: contactRes.count || 0,
+        },
+        recentMembers: recentRes.data || [],
+        permRequests: permReqRes.data || [],
+        applications: pendingAppsRes.data || [],
+        messages: recentMsgsRes.data || []
       }
     }
+  })
 
-    setPermRequests(prev => prev.filter(p => p.id !== id))
-    setStats(prev => ({ ...prev, permissions: prev.permissions - 1 }))
-  }
+  // We fall back to empty defaults if undefined
+  const stats = data?.stats || { members: 0, applications: 0, events: 0, permissions: 0, messages: 0 }
+  const recentMembers = data?.recentMembers || []
+  const permRequests = data?.permRequests || []
+  const applications = data?.applications || []
+  const messages = data?.messages || []
 
   const isPresident = profile?.oc_position === 'president'
 
   return (
     <div>
       {/* Page header */}
-      <div style={{ marginBottom: 32 }}>
-        <p style={{ color: 'var(--cyan)', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>
+      <div className="mb-8">
+        <p className="text-[#00D4FF] text-[11px] font-bold uppercase tracking-[0.1em] mb-1.5">
           Overview
         </p>
-        <h1 style={{ fontFamily: 'Barlow Condensed, sans-serif', fontSize: 32, fontWeight: 800, color: '#fff', textTransform: 'uppercase', letterSpacing: '-0.01em' }}>
+        <h1 className="font-['Barlow_Condensed',sans-serif] text-[32px] font-extrabold text-white uppercase tracking-[-0.01em]">
           Dashboard
         </h1>
-        <p style={{ color: 'var(--text-muted)', fontSize: 13, marginTop: 4 }}>
+        <p className="text-gray-400 text-[13px] mt-1">
           Welcome back, {profile?.full_name?.split(' ')[0]}. Here's what needs your attention.
         </p>
       </div>
 
       {/* Stat cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 16, marginBottom: 32 }}>
+      <div className="grid grid-cols-5 gap-4 mb-8">
         {[
-          { label: 'Total members',      value: stats.members,      color: 'var(--cyan)', link: '/oc/members' },
-          { label: 'Pending apps',       value: stats.applications, color: '#F59E0B',     link: '/oc/applications' },
-          { label: 'Active events',      value: stats.events,       color: '#A78BFA',     link: '/oc/events' },
-          { label: 'New Messages',       value: stats.messages,     color: '#10B981',     link: '/oc/messages' },
-          { label: 'Perm requests',      value: stats.permissions,  color: 'var(--pink)', link: '/oc/permissions' },
+          { label: 'Total members',      value: stats.members,      color: 'text-[#00D4FF]', link: '/oc/members' },
+          { label: 'Pending apps',       value: stats.applications, color: 'text-[#F59E0B]', link: '/oc/applications' },
+          { label: 'Active events',      value: stats.events,       color: 'text-[#A78BFA]', link: '/oc/events' },
+          { label: 'New Messages',       value: stats.messages,     color: 'text-[#10B981]', link: '/oc/messages' },
+          { label: 'Perm requests',      value: stats.permissions,  color: 'text-[#FF2D9B]', link: '/oc/permissions' },
         ].map((s, i) => (
-          <Link key={i} to={s.link} style={{ textDecoration: 'none' }}>
-            <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, padding: '20px 20px 16px', transition: 'border-color 0.2s, transform 0.2s', cursor: 'pointer' }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(0,212,255,0.2)'; e.currentTarget.style.transform = 'translateY(-2px)' }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.transform = 'translateY(0)' }}
-            >
-              <p style={{ color: 'var(--text-muted)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>{s.label}</p>
-              <p style={{ fontFamily: 'Barlow Condensed, sans-serif', fontSize: 32, fontWeight: 800, color: s.color, lineHeight: 1 }}>
+          <Link key={i} to={s.link} className="no-underline">
+            <div className="bg-[#0D1829] border border-white/10 rounded-xl p-5 pb-4 transition-all duration-200 cursor-pointer hover:border-[#00D4FF]/20 hover:-translate-y-0.5">
+              <p className="text-gray-400 text-[10px] uppercase tracking-[0.08em] mb-2.5">{s.label}</p>
+              <p className={`font-['Barlow_Condensed',sans-serif] text-[32px] font-extrabold leading-none ${s.color}`}>
                 {loading ? '—' : s.value}
               </p>
             </div>
@@ -112,28 +82,28 @@ export default function OCDashboard() {
         ))}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24 }}>
+      <div className="grid grid-cols-3 gap-6">
 
         {/* Pending Applications */}
-        <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden' }}>
-          <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <h3 style={{ color: '#fff', fontSize: 13, fontWeight: 600 }}>Pending Apps</h3>
-            <Link to="/oc/applications" style={{ color: 'var(--cyan)', fontSize: 11, textDecoration: 'none' }}>View all →</Link>
+        <div className="bg-[#0D1829] border border-white/10 rounded-xl overflow-hidden">
+          <div className="px-5 py-4 border-b border-white/10 flex items-center justify-between">
+            <h3 className="text-white text-[13px] font-semibold">Pending Apps</h3>
+            <Link to="/oc/applications" className="text-[#00D4FF] text-[11px] no-underline">View all →</Link>
           </div>
           <div>
             {loading ? (
-              <div style={{ padding: 20 }}><Skeleton /></div>
+              <div className="p-5"><Skeleton /></div>
             ) : applications.length === 0 ? (
-              <div style={{ padding: '32px 20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 12 }}>No pending apps</div>
+              <div className="py-8 px-5 text-center text-gray-400 text-[12px]">No pending apps</div>
             ) : (
               applications.map((app) => (
-                <div key={app.id} style={{ padding: '12px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'linear-gradient(135deg, var(--cyan), #0066FF)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
+                <div key={app.id} className="px-5 py-3 border-b border-white/10 flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#00D4FF] to-[#0066FF] flex items-center justify-center text-[10px] font-bold text-white shrink-0">
                     {app.full_name?.[0]}
                   </div>
-                  <div style={{ flex: 1, overflow: 'hidden' }}>
-                    <p style={{ color: '#fff', fontSize: 12, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{app.full_name}</p>
-                    <p style={{ color: 'var(--text-muted)', fontSize: 10 }}>{formatDate(app.created_at)}</p>
+                  <div className="flex-1 overflow-hidden">
+                    <p className="text-white text-[12px] font-medium overflow-hidden text-ellipsis whitespace-nowrap">{app.full_name}</p>
+                    <p className="text-gray-400 text-[10px]">{formatDate(app.created_at)}</p>
                   </div>
                 </div>
               ))
@@ -142,25 +112,25 @@ export default function OCDashboard() {
         </div>
 
         {/* Recent Messages */}
-        <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden' }}>
-          <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <h3 style={{ color: '#fff', fontSize: 13, fontWeight: 600 }}>Recent Messages</h3>
-            <Link to="/oc/messages" style={{ color: 'var(--cyan)', fontSize: 11, textDecoration: 'none' }}>View all →</Link>
+        <div className="bg-[#0D1829] border border-white/10 rounded-xl overflow-hidden">
+          <div className="px-5 py-4 border-b border-white/10 flex items-center justify-between">
+            <h3 className="text-white text-[13px] font-semibold">Recent Messages</h3>
+            <Link to="/oc/messages" className="text-[#00D4FF] text-[11px] no-underline">View all →</Link>
           </div>
           <div>
             {loading ? (
-              <div style={{ padding: 20 }}><Skeleton /></div>
+              <div className="p-5"><Skeleton /></div>
             ) : messages.length === 0 ? (
-              <div style={{ padding: '32px 20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 12 }}>No recent messages</div>
+              <div className="py-8 px-5 text-center text-gray-400 text-[12px]">No recent messages</div>
             ) : (
               messages.map((msg) => (
-                <div key={msg.id} style={{ padding: '12px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <div style={{ width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg, var(--pink), #00D4FF)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
+                <div key={msg.id} className="px-5 py-3 border-b border-white/10 flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#FF2D9B] to-[#00D4FF] flex items-center justify-center text-[10px] font-bold text-white shrink-0">
                     {msg.full_name?.[0]}
                   </div>
-                  <div style={{ flex: 1, overflow: 'hidden' }}>
-                    <p style={{ color: '#fff', fontSize: 12, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{msg.full_name}</p>
-                    <p style={{ color: 'var(--text-muted)', fontSize: 10 }}>{msg.subject}</p>
+                  <div className="flex-1 overflow-hidden">
+                    <p className="text-white text-[12px] font-medium overflow-hidden text-ellipsis whitespace-nowrap">{msg.full_name}</p>
+                    <p className="text-gray-400 text-[10px]">{msg.subject}</p>
                   </div>
                 </div>
               ))
@@ -169,27 +139,27 @@ export default function OCDashboard() {
         </div>
 
         {/* Permission Requests */}
-        <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden' }}>
-          <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <h3 style={{ color: '#fff', fontSize: 13, fontWeight: 600 }}>Perm Requests</h3>
-            <Link to="/oc/permissions" style={{ color: 'var(--cyan)', fontSize: 11, textDecoration: 'none' }}>View all →</Link>
+        <div className="bg-[#0D1829] border border-white/10 rounded-xl overflow-hidden">
+          <div className="px-5 py-4 border-b border-white/10 flex items-center justify-between">
+            <h3 className="text-white text-[13px] font-semibold">Perm Requests</h3>
+            <Link to="/oc/permissions" className="text-[#00D4FF] text-[11px] no-underline">View all →</Link>
           </div>
           <div>
             {!isPresident ? (
-              <div style={{ padding: '32px 20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 12 }}>President only</div>
+              <div className="py-8 px-5 text-center text-gray-400 text-[12px]">President only</div>
             ) : loading ? (
-              <div style={{ padding: 20 }}><Skeleton /></div>
+              <div className="p-5"><Skeleton /></div>
             ) : permRequests.length === 0 ? (
-              <div style={{ padding: '32px 20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 12 }}>No pending requests</div>
+              <div className="py-8 px-5 text-center text-gray-400 text-[12px]">No pending requests</div>
             ) : (
               permRequests.map((req) => (
-                <div key={req.id} style={{ padding: '12px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: 'var(--cyan)', flexShrink: 0 }}>
+                <div key={req.id} className="px-5 py-3 border-b border-white/10 flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-[10px] font-bold text-[#00D4FF] shrink-0">
                     {req.profiles?.full_name?.[0]}
                   </div>
-                  <div style={{ flex: 1, overflow: 'hidden' }}>
-                    <p style={{ color: '#fff', fontSize: 12, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{req.profiles?.full_name}</p>
-                    <p style={{ color: 'var(--text-muted)', fontSize: 10 }}>{req.permission_requested}</p>
+                  <div className="flex-1 overflow-hidden">
+                    <p className="text-white text-[12px] font-medium overflow-hidden text-ellipsis whitespace-nowrap">{req.profiles?.full_name}</p>
+                    <p className="text-gray-400 text-[10px]">{req.permission_requested}</p>
                   </div>
                 </div>
               ))
@@ -199,42 +169,43 @@ export default function OCDashboard() {
       </div>
 
       {/* Recent Members */}
-      <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden', marginTop: 24 }}>
-        <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <h3 style={{ color: '#fff', fontSize: 14, fontWeight: 600 }}>Recent Members</h3>
-          <Link to="/oc/members" style={{ color: 'var(--cyan)', fontSize: 12, textDecoration: 'none' }}>View all →</Link>
+      <div className="bg-[#0D1829] border border-white/10 rounded-xl overflow-hidden mt-6">
+        <div className="px-5 py-4 border-b border-white/10 flex items-center justify-between">
+          <h3 className="text-white text-[14px] font-semibold">Recent Members</h3>
+          <Link to="/oc/members" className="text-[#00D4FF] text-[12px] no-underline">View all →</Link>
         </div>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <table className="w-full collapse">
           <thead>
-            <tr style={{ borderBottom: '1px solid var(--border)' }}>
+            <tr className="border-b border-white/10">
               {['Member', 'Role', 'Year', 'Joined'].map(h => (
-                <th key={h} style={{ padding: '10px 20px', textAlign: 'left', fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{h}</th>
+                <th key={h} className="px-5 py-2.5 text-left text-[10px] font-bold text-gray-400 uppercase tracking-[0.08em]">{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={4} style={{ padding: 20 }}><Skeleton /></td></tr>
+              <tr><td colSpan={4} className="p-5"><Skeleton /></td></tr>
             ) : recentMembers.map((m) => (
-              <tr key={m.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                <td style={{ padding: '12px 20px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'linear-gradient(135deg, var(--cyan), #0066FF)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: '#fff' }}>
+              <tr key={m.id} className="border-b border-white/10">
+                <td className="px-5 py-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#00D4FF] to-[#0066FF] flex items-center justify-center text-[10px] font-bold text-white">
                       {m.full_name?.[0]}
                     </div>
-                    <span style={{ color: '#fff', fontSize: 13 }}>{m.full_name}</span>
+                    <span className="text-white text-[13px]">{m.full_name}</span>
                   </div>
                 </td>
-                <td style={{ padding: '12px 20px' }}>
-                  <span style={{
-                    fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 20, textTransform: 'capitalize',
-                    background: m.role === 'oc' ? 'rgba(255,45,155,0.1)' : m.role === 'executive' ? 'rgba(0,212,255,0.1)' : 'rgba(255,255,255,0.06)',
-                    color: m.role === 'oc' ? 'var(--pink)' : m.role === 'executive' ? 'var(--cyan)' : 'var(--text-muted)',
-                    border: `1px solid ${m.role === 'oc' ? 'rgba(255,45,155,0.25)' : m.role === 'executive' ? 'rgba(0,212,255,0.25)' : 'var(--border)'}`,
-                  }}>{m.role}</span>
+                <td className="px-5 py-3">
+                  <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full capitalize border ${
+                    m.role === 'oc' ? 'bg-[#FF2D9B]/10 text-[#FF2D9B] border-[#FF2D9B]/25' : 
+                    m.role === 'executive' ? 'bg-[#00D4FF]/10 text-[#00D4FF] border-[#00D4FF]/25' : 
+                    'bg-white/5 text-gray-400 border-white/10'
+                  }`}>
+                    {m.role}
+                  </span>
                 </td>
-                <td style={{ padding: '12px 20px', color: 'var(--text-muted)', fontSize: 13 }}>Year {m.college_year || '—'}</td>
-                <td style={{ padding: '12px 20px', color: 'var(--text-muted)', fontSize: 12, fontFamily: 'JetBrains Mono, monospace' }}>{formatDate(m.created_at)}</td>
+                <td className="px-5 py-3 text-gray-400 text-[13px]">Year {m.college_year || '—'}</td>
+                <td className="px-5 py-3 text-gray-400 text-[12px] font-mono">{formatDate(m.created_at)}</td>
               </tr>
             ))}
           </tbody>
@@ -246,8 +217,8 @@ export default function OCDashboard() {
 
 function Skeleton() {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-      {[1,2,3].map(i => <div key={i} style={{ height: 12, borderRadius: 4, background: 'rgba(255,255,255,0.05)', width: `${60 + i * 10}%` }}/>)}
+    <div className="flex flex-col gap-2">
+      {[1,2,3].map(i => <div key={i} className="h-3 rounded bg-white/5" style={{ width: `${60 + i * 10}%` }}/>)}
     </div>
   )
 }

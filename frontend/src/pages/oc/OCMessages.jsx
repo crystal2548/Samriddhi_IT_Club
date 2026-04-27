@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../utils/supabase'
-import { formatDate } from '../../utils/formatDate'
+import { formatDate } from '../../utils/formatters'
 
 export default function OCMessages() {
   const [messages, setMessages] = useState([])

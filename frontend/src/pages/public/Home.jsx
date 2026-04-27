@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../../utils/supabase'
-import { formatDateShort } from '../../utils/formatDate'
+import { formatDateShort } from '../../utils/formatters'
 import { useSiteSettings } from '../../context/SiteContext'
 
 const HERO_WORDS = ['INNOVATE.', 'CREATE.', 'COMPETE.', 'CONNECT.']

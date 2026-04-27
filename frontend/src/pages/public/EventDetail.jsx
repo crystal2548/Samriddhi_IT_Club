@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../../utils/supabase'
 import { useAuth } from '../../context/AuthContext'
-import { formatDateTime, formatDateShort } from '../../utils/formatDate'
+import { formatDateTime, formatDateShort } from '../../utils/formatters'
 
 const TYPE_COLOR = {
   hackathon: 'var(--cyan)',

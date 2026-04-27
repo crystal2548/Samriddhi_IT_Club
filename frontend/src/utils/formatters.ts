@@ -1,23 +1,20 @@
-// ─── formatDate.js ───────────────────────────────────────────
+// ─── formatters.ts ───────────────────────────────────────────
 
-// "Mar 15, 2025"
-export function formatDate(dateStr) {
+export function formatDate(dateStr: string | null | undefined): string {
   if (!dateStr) return ''
   return new Date(dateStr).toLocaleDateString('en-US', {
     month: 'short', day: 'numeric', year: 'numeric'
   })
 }
 
-// "Mar 15"
-export function formatDateShort(dateStr) {
+export function formatDateShort(dateStr: string | null | undefined): string {
   if (!dateStr) return ''
   return new Date(dateStr).toLocaleDateString('en-US', {
     month: 'short', day: 'numeric'
   })
 }
 
-// "Mar 15, 2025 • 09:00 AM"
-export function formatDateTime(dateStr) {
+export function formatDateTime(dateStr: string | null | undefined): string {
   if (!dateStr) return ''
   return new Date(dateStr).toLocaleDateString('en-US', {
     month: 'short', day: 'numeric', year: 'numeric',
@@ -25,10 +22,16 @@ export function formatDateTime(dateStr) {
   })
 }
 
-// "2 days ago" / "in 3 days"
-export function formatRelative(dateStr) {
+export function formatTime(timeStr: string | null | undefined): string {
+  if (!timeStr) return ''
+  return new Date(timeStr).toLocaleTimeString('en-US', {
+    hour: '2-digit', minute: '2-digit'
+  })
+}
+
+export function formatRelative(dateStr: string | null | undefined): string {
   if (!dateStr) return ''
-  const diff = new Date(dateStr) - new Date()
+  const diff = new Date(dateStr).getTime() - new Date().getTime()
   const days = Math.round(diff / (1000 * 60 * 60 * 24))
   if (days === 0) return 'Today'
   if (days === 1) return 'Tomorrow'
@@ -37,10 +40,9 @@ export function formatRelative(dateStr) {
   return `${Math.abs(days)} days ago`
 }
 
-// deadline urgency — returns 'red' | 'amber' | 'green'
-export function deadlineColor(dateStr) {
+export function deadlineColor(dateStr: string | null | undefined): 'red' | 'amber' | 'green' | 'gray' {
   if (!dateStr) return 'gray'
-  const diff = new Date(dateStr) - new Date()
+  const diff = new Date(dateStr).getTime() - new Date().getTime()
   const days = Math.round(diff / (1000 * 60 * 60 * 24))
   if (days < 0)  return 'gray'
   if (days <= 3) return 'red'
@@ -48,10 +50,9 @@ export function deadlineColor(dateStr) {
   return 'green'
 }
 
-// deadline label — "3 days left" | "Closed" | "Open"
-export function deadlineLabel(dateStr) {
+export function deadlineLabel(dateStr: string | null | undefined): string {
   if (!dateStr) return 'Open'
-  const diff = new Date(dateStr) - new Date()
+  const diff = new Date(dateStr).getTime() - new Date().getTime()
   const days = Math.round(diff / (1000 * 60 * 60 * 24))
   if (days < 0)  return 'Closed'
   if (days === 0) return 'Last day!'
@@ -60,11 +61,8 @@ export function deadlineLabel(dateStr) {
   return 'Open'
 }
 
-
-// ─── formatSlug.js ───────────────────────────────────────────
-
-// "Hello World! 2025" → "hello-world-2025"
-export function toSlug(str) {
+export function toSlug(str: string): string {
+  if (!str) return ''
   return str
     .toLowerCase()
     .trim()
@@ -73,8 +71,8 @@ export function toSlug(str) {
     .replace(/^-+|-+$/g, '')
 }
 
-// "hello-world-2025" → "Hello World 2025"
-export function fromSlug(slug) {
+export function fromSlug(slug: string): string {
+  if (!slug) return ''
   return slug
     .split('-')
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))

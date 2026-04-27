@@ -1,12 +1,13 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../../utils/supabase'
 import { useAuth } from '../../context/AuthContext'
-import { formatDate } from '../../utils/formatDate'
+import { formatDate } from '../../utils/formatters'
 
 export default function OCMembers() {
   const { profile: currentProfile } = useAuth()
-  const [members, setMembers] = useState([])
-  const [loading, setLoading] = useState(true)
+  const queryClient = useQueryClient()
+  
   const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState('all')
   const [editId, setEditId] = useState(null)
@@ -16,32 +17,38 @@ export default function OCMembers() {
 
   const isPresident = currentProfile?.oc_position === 'president'
 
-  useEffect(() => { fetchMembers() }, [])
-
-  async function fetchMembers() {
-    setLoading(true)
-    const { data } = await supabase
-      .from('profiles')
-      .select('*')
-      .order('created_at', { ascending: false })
-    setMembers(data || [])
-    setLoading(false)
-  }
+  const { data: members = [], isLoading: loading } = useQuery({
+    queryKey: ['oc_members'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: false })
+      return data || []
+    }
+  })
 
   async function saveRole(id) {
     setSaving(true)
     const updates = { role: editRole }
     if (editRole === 'oc') updates.oc_position = editPosition
     else updates.oc_position = null
+    
     await supabase.from('profiles').update(updates).eq('id', id)
-    setMembers(prev => prev.map(m => m.id === id ? { ...m, ...updates } : m))
+    
+    queryClient.setQueryData(['oc_members'], prev => 
+      prev ? prev.map(m => m.id === id ? { ...m, ...updates } : m) : []
+    )
+    
     setEditId(null)
     setSaving(false)
   }
 
   async function toggleActive(id, current) {
     await supabase.from('profiles').update({ is_active: !current }).eq('id', id)
-    setMembers(prev => prev.map(m => m.id === id ? { ...m, is_active: !current } : m))
+    queryClient.setQueryData(['oc_members'], prev => 
+      prev ? prev.map(m => m.id === id ? { ...m, is_active: !current } : m) : []
+    )
   }
 
   async function deleteMember(id, name) {
@@ -53,7 +60,9 @@ export default function OCMembers() {
       return
     }
     
-    setMembers(prev => prev.filter(m => m.id !== id))
+    queryClient.setQueryData(['oc_members'], prev => 
+      prev ? prev.filter(m => m.id !== id) : []
+    )
   }
 
   const filtered = members.filter(m => {
@@ -66,130 +75,149 @@ export default function OCMembers() {
 
   return (
     <div>
-      <div style={{ marginBottom: 28 }}>
-        <p style={{ color: 'var(--cyan)', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>Members</p>
-        <h1 style={{ fontFamily: 'Barlow Condensed, sans-serif', fontSize: 32, fontWeight: 800, color: '#fff', textTransform: 'uppercase' }}>All Members</h1>
-        <p style={{ color: 'var(--text-muted)', fontSize: 13, marginTop: 4 }}>{members.length} total members</p>
+      <div className="mb-7">
+        <p className="text-[#00D4FF] text-[11px] font-bold uppercase tracking-[0.1em] mb-1.5">Members</p>
+        <h1 className="font-['Barlow_Condensed',sans-serif] text-[32px] font-extrabold text-white uppercase">All Members</h1>
+        <p className="text-gray-400 text-[13px] mt-1">{members.length} total members</p>
       </div>
 
       {/* Filters */}
-      <div style={{ display: 'flex', gap: 12, marginBottom: 20, flexWrap: 'wrap', alignItems: 'center' }}>
-        <div style={{ position: 'relative', flex: 1, minWidth: 200 }}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2" style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
+      <div className="flex gap-3 mb-5 flex-wrap items-center">
+        <div className="relative flex-1 min-w-[200px]">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
             <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
           </svg>
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by name or email..."
-            style={{ width: '100%', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 8, padding: '9px 12px 9px 36px', color: '#fff', fontSize: 13, outline: 'none', fontFamily: 'Inter, sans-serif' }}
-            onFocus={e => e.target.style.borderColor = 'rgba(0,212,255,0.4)'}
-            onBlur={e => e.target.style.borderColor = 'var(--border)'}
+            className="w-full bg-[#0D1829] border border-white/10 rounded-lg py-2 px-3 pl-9 text-white text-[13px] outline-none font-sans focus:border-[#00D4FF]/40 transition-colors"
           />
         </div>
+        
         {['all','general','executive','oc'].map(r => (
           <button key={r} onClick={() => setRoleFilter(r)}
-            style={{ padding: '8px 16px', borderRadius: 20, fontSize: 12, fontWeight: 500, cursor: 'pointer', textTransform: 'capitalize', background: roleFilter === r ? 'rgba(0,212,255,0.1)' : 'transparent', color: roleFilter === r ? 'var(--cyan)' : 'var(--text-muted)', border: `1px solid ${roleFilter === r ? 'rgba(0,212,255,0.3)' : 'var(--border)'}`, transition: 'all 0.15s' }}>
+            className={`px-4 py-2 rounded-full text-[12px] font-medium cursor-pointer capitalize transition-all duration-150 border ${
+              roleFilter === r 
+                ? 'bg-[#00D4FF]/10 text-[#00D4FF] border-[#00D4FF]/30' 
+                : 'bg-transparent text-gray-400 border-white/10 hover:border-white/20'
+            }`}>
             {r}
           </button>
         ))}
       </div>
 
       {/* Table */}
-      <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden' }}>
+      <div className="bg-[#0D1829] border border-white/10 rounded-xl overflow-hidden self-start">
         {loading ? (
-          <div style={{ padding: 32, textAlign: 'center', color: 'var(--text-muted)' }}>Loading...</div>
+          <div className="p-8 text-center text-gray-400 text-[13px]">Loading...</div>
         ) : filtered.length === 0 ? (
-          <div style={{ padding: 48, textAlign: 'center', color: 'var(--text-muted)', fontSize: 13 }}>No members found.</div>
+          <div className="p-12 text-center text-gray-400 text-[13px]">No members found.</div>
         ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                {['Member','Role / Position','Year','Status','Joined','Actions'].map(h => (
-                  <th key={h} style={{ padding: '10px 16px', textAlign: h === 'Actions' ? 'right' : 'left', fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', whiteSpace: 'nowrap' }}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map(m => (
-                <tr key={m.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                  <td style={{ padding: '12px 16px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      {m.photo_url
-                        ? <img src={m.photo_url} alt={m.full_name} style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover' }}/>
-                        : <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'linear-gradient(135deg, var(--cyan), #0066FF)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: '#fff', flexShrink: 0 }}>{m.full_name?.[0]}</div>
-                      }
-                      <div>
-                        <p style={{ color: '#fff', fontSize: 13, fontWeight: 500 }}>{m.full_name}</p>
-                        <p style={{ color: 'var(--text-muted)', fontSize: 11 }}>{m.email}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td style={{ padding: '12px 16px' }}>
-                    {editId === m.id ? (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                        <select value={editRole} onChange={e => setEditRole(e.target.value)}
-                          style={{ background: 'var(--bg-primary)', border: '1px solid var(--border)', borderRadius: 6, padding: '4px 8px', color: '#fff', fontSize: 12, outline: 'none' }}>
-                          <option value="general">General</option>
-                          <option value="executive">Executive</option>
-                          <option value="oc">OC</option>
-                        </select>
-                        {editRole === 'oc' && (
-                          <select value={editPosition} onChange={e => setEditPosition(e.target.value)}
-                            style={{ background: 'var(--bg-primary)', border: '1px solid var(--border)', borderRadius: 6, padding: '4px 8px', color: '#fff', fontSize: 12, outline: 'none' }}>
-                            <option value="">Select position</option>
-                            {OC_POSITIONS.map(p => <option key={p} value={p}>{p.replace(/_/g,' ')}</option>)}
-                          </select>
-                        )}
-                      </div>
-                    ) : (
-                      <div>
-                        <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 20, textTransform: 'capitalize', background: m.role === 'oc' ? 'rgba(255,45,155,0.1)' : m.role === 'executive' ? 'rgba(0,212,255,0.1)' : 'rgba(255,255,255,0.06)', color: m.role === 'oc' ? 'var(--pink)' : m.role === 'executive' ? 'var(--cyan)' : 'var(--text-muted)', border: `1px solid ${m.role === 'oc' ? 'rgba(255,45,155,0.25)' : m.role === 'executive' ? 'rgba(0,212,255,0.25)' : 'var(--border)'}` }}>{m.role}</span>
-                        {m.oc_position && <p style={{ color: 'var(--text-muted)', fontSize: 10, marginTop: 3, textTransform: 'capitalize' }}>{m.oc_position.replace(/_/g,' ')}</p>}
-                      </div>
-                    )}
-                  </td>
-                  <td style={{ padding: '12px 16px', color: 'var(--text-muted)', fontSize: 13 }}>Year {m.college_year || '—'}</td>
-                  <td style={{ padding: '12px 16px' }}>
-                    <span style={{ fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 20, background: m.is_active ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)', color: m.is_active ? '#10B981' : '#EF4444', border: `1px solid ${m.is_active ? 'rgba(16,185,129,0.25)' : 'rgba(239,68,68,0.25)'}` }}>
-                      {m.is_active ? 'Active' : 'Suspended'}
-                    </span>
-                  </td>
-                  <td style={{ padding: '12px 16px', color: 'var(--text-muted)', fontSize: 11, fontFamily: 'JetBrains Mono, monospace', whiteSpace: 'nowrap' }}>{formatDate(m.created_at)}</td>
-                  <td style={{ padding: '12px 16px' }}>
-                    {isPresident && (
-                      <div style={{ display: 'flex', gap: 4, flexWrap: 'nowrap', justifyContent: 'flex-end' }}>
-                        {editId === m.id ? (
-                          <>
-                            <button onClick={() => saveRole(m.id)} disabled={saving}
-                              style={{ padding: '4px 8px', borderRadius: 6, background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.25)', color: '#10B981', fontSize: 11, cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                              {saving ? '...' : 'Save'}
-                            </button>
-                            <button onClick={() => setEditId(null)}
-                              style={{ padding: '4px 8px', borderRadius: 6, background: 'transparent', border: '1px solid var(--border)', color: 'var(--text-muted)', fontSize: 11, cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                              Cancel
-                            </button>
-                          </>
-                        ) : (
-                          <>
-                            <button onClick={() => { setEditId(m.id); setEditRole(m.role); setEditPosition(m.oc_position || '') }}
-                              style={{ padding: '4px 8px', borderRadius: 6, background: 'rgba(0,212,255,0.08)', border: '1px solid rgba(0,212,255,0.2)', color: 'var(--cyan)', fontSize: 11, cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                              Edit
-                            </button>
-                            <button onClick={() => toggleActive(m.id, m.is_active)}
-                              style={{ padding: '4px 8px', borderRadius: 6, background: m.is_active ? 'rgba(239,68,68,0.08)' : 'rgba(16,185,129,0.08)', border: `1px solid ${m.is_active ? 'rgba(239,68,68,0.25)' : 'rgba(16,185,129,0.25)'}`, color: m.is_active ? '#EF4444' : '#10B981', fontSize: 11, cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                              {m.is_active ? 'Suspend' : 'Activate'}
-                            </button>
-                            <button onClick={() => deleteMember(m.id, m.full_name)}
-                              style={{ padding: '4px 8px', borderRadius: 6, background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', color: '#EF4444', fontSize: 11, cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                              Delete
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    )}
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="border-b border-white/10">
+                  {['Member','Role / Position','Year','Status','Joined','Actions'].map(h => (
+                    <th key={h} className={`p-3 px-4 text-[10px] font-bold text-gray-400 uppercase tracking-[0.08em] whitespace-nowrap ${h === 'Actions' ? 'text-right' : 'text-left'}`}>
+                      {h}
+                    </th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {filtered.map(m => (
+                  <tr key={m.id} className="border-b border-white/10 hover:bg-white/5 transition-colors duration-150">
+                    <td className="p-3 px-4">
+                      <div className="flex items-center gap-2.5">
+                        {m.photo_url
+                          ? <img src={m.photo_url} alt={m.full_name} className="w-8 h-8 rounded-full object-cover shrink-0"/>
+                          : <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#00D4FF] to-[#0066FF] flex items-center justify-center text-[11px] font-bold text-white shrink-0">{m.full_name?.[0]}</div>
+                        }
+                        <div>
+                          <p className="text-white text-[13px] font-medium">{m.full_name}</p>
+                          <p className="text-gray-400 text-[11px]">{m.email}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="p-3 px-4">
+                      {editId === m.id ? (
+                        <div className="flex flex-col gap-1.5">
+                          <select value={editRole} onChange={e => setEditRole(e.target.value)}
+                            className="bg-[#0A0E1A] border border-white/10 rounded-md py-1 px-2 text-white text-[12px] outline-none">
+                            <option value="general">General</option>
+                            <option value="executive">Executive</option>
+                            <option value="oc">OC</option>
+                          </select>
+                          {editRole === 'oc' && (
+                            <select value={editPosition} onChange={e => setEditPosition(e.target.value)}
+                              className="bg-[#0A0E1A] border border-white/10 rounded-md py-1 px-2 text-white text-[12px] outline-none">
+                              <option value="">Select position</option>
+                              {OC_POSITIONS.map(p => <option key={p} value={p}>{p.replace(/_/g,' ')}</option>)}
+                            </select>
+                          )}
+                        </div>
+                      ) : (
+                        <div>
+                          <span className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full capitalize border ${
+                            m.role === 'oc' ? 'bg-[#FF2D9B]/10 text-[#FF2D9B] border-[#FF2D9B]/25' : 
+                            m.role === 'executive' ? 'bg-[#00D4FF]/10 text-[#00D4FF] border-[#00D4FF]/25' : 
+                            'bg-white/5 text-gray-400 border-white/10'
+                          }`}>
+                            {m.role}
+                          </span>
+                          {m.oc_position && <p className="text-gray-400 text-[10px] mt-1 capitalize">{m.oc_position.replace(/_/g,' ')}</p>}
+                        </div>
+                      )}
+                    </td>
+                    <td className="p-3 px-4 text-gray-400 text-[13px]">Year {m.college_year || '—'}</td>
+                    <td className="p-3 px-4">
+                      <span className={`text-[10px] font-semibold px-2.5 py-0.5 rounded-full border ${
+                        m.is_active ? 'bg-[#10B981]/10 text-[#10B981] border-[#10B981]/25' : 'bg-[#EF4444]/10 text-[#EF4444] border-[#EF4444]/25'
+                      }`}>
+                        {m.is_active ? 'Active' : 'Suspended'}
+                      </span>
+                    </td>
+                    <td className="p-3 px-4 text-gray-400 text-[11px] font-mono whitespace-nowrap">{formatDate(m.created_at)}</td>
+                    <td className="p-3 px-4">
+                      {isPresident && (
+                        <div className="flex gap-1 flex-nowrap justify-end">
+                          {editId === m.id ? (
+                            <>
+                              <button onClick={() => saveRole(m.id)} disabled={saving}
+                                className="px-2.5 py-1.5 rounded-md bg-[#10B981]/10 border border-[#10B981]/25 text-[#10B981] text-[11px] font-medium cursor-pointer whitespace-nowrap hover:bg-[#10B981]/20">
+                                {saving ? '...' : 'Save'}
+                              </button>
+                              <button onClick={() => setEditId(null)}
+                                className="px-2.5 py-1.5 rounded-md bg-transparent border border-white/10 text-gray-400 text-[11px] font-medium cursor-pointer whitespace-nowrap hover:bg-white/5">
+                                Cancel
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              <button onClick={() => { setEditId(m.id); setEditRole(m.role); setEditPosition(m.oc_position || '') }}
+                                className="px-2.5 py-1.5 rounded-md bg-[#00D4FF]/10 border border-[#00D4FF]/20 text-[#00D4FF] text-[11px] font-medium cursor-pointer whitespace-nowrap hover:bg-[#00D4FF]/20">
+                                Edit
+                              </button>
+                              <button onClick={() => toggleActive(m.id, m.is_active)}
+                                className={`px-2.5 py-1.5 rounded-md border text-[11px] font-medium cursor-pointer whitespace-nowrap ${
+                                  m.is_active 
+                                    ? 'bg-[#EF4444]/10 border-[#EF4444]/25 text-[#EF4444] hover:bg-[#EF4444]/20' 
+                                    : 'bg-[#10B981]/10 border-[#10B981]/25 text-[#10B981] hover:bg-[#10B981]/20'
+                                }`}>
+                                {m.is_active ? 'Suspend' : 'Activate'}
+                              </button>
+                              <button onClick={() => deleteMember(m.id, m.full_name)}
+                                className="px-2.5 py-1.5 rounded-md bg-[#EF4444]/15 border border-[#EF4444]/30 text-[#EF4444] text-[11px] font-medium cursor-pointer whitespace-nowrap hover:bg-[#EF4444]/25">
+                                Delete
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </div>

@@ -1,37 +1,36 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { supabase } from '../../utils/supabase'
 import { useAuth } from '../../context/AuthContext'
-import { formatDateTime, formatDateShort } from '../../utils/formatDate'
+import { formatDateTime } from '../../utils/formatters'
 
 export default function MyEvents() {
   const { user } = useAuth()
-  const [registrations, setRegistrations] = useState([])
-  const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all')
   const [unregistering, setUnregistering] = useState(null)
-
-  useEffect(() => {
-    if (user) fetchRegistrations()
-  }, [user])
-
-  async function fetchRegistrations() {
-    setLoading(true)
-    const { data } = await supabase
-      .from('event_registrations')
-      .select('*, events(id, title, type, description, event_date, location, status, banner_url, max_participants)')
-      .eq('member_id', user.id)
-      .order('registered_at', { ascending: false })
-    setRegistrations(data || [])
-    setLoading(false)
-  }
+  const queryClient = useQueryClient()
+  const { data: registrations = [], isLoading: loading } = useQuery({
+    queryKey: ['my-events', user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('event_registrations')
+        .select('*, events(id, title, type, description, event_date, location, status, banner_url, max_participants)')
+        .eq('member_id', user.id)
+        .order('registered_at', { ascending: false })
+      
+      if (error) throw error
+      return data || []
+    },
+    enabled: !!user?.id
+  })
 
   async function handleUnregister(regId, eventTitle) {
     if (!confirm(`Unregister from "${eventTitle}"?`)) return
     setUnregistering(regId)
     await supabase.from('event_registrations').delete().eq('id', regId)
-    setRegistrations(prev => prev.filter(r => r.id !== regId))
     setUnregistering(null)
+    queryClient.invalidateQueries({ queryKey: ['my-events', user?.id] })
   }
 
   const filtered = registrations.filter(r => {

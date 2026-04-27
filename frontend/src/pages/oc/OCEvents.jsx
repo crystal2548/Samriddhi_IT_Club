@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { supabase } from '../../utils/supabase'
 import { useAuth } from '../../context/AuthContext'
-import { formatDateTime } from '../../utils/formatDate'
+import { formatDateTime } from '../../utils/formatters'
 
 const EMPTY_EVENT = {
   title: '', type: 'workshop', description: '', banner_url: '',

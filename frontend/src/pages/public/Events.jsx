@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { supabase } from '../../utils/supabase'
-import { formatDateTime, formatDateShort } from '../../utils/formatDate'
+import { formatDateTime, formatDateShort } from '../../utils/formatters'
 
 const TYPE_FILTERS = ['All', 'Hackathon', 'Workshop', 'Seminar', 'Bootcamp', 'Social', 'Fest']
 

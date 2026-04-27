@@ -1,7 +1,6 @@
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
 import { supabase } from '../../utils/supabase'
 import { useAuth } from '../../context/AuthContext'
-import { formatDateTime } from '../../utils/formatDate'
 
 export default function Gallery() {
   const { profile, isExecutive, loading: authLoading } = useAuth()
@@ -11,11 +10,7 @@ export default function Gallery() {
   const [error, setError] = useState('')
   const fileRef = useRef(null)
 
-  useEffect(() => {
-    fetchGallery()
-  }, [])
-
-  async function fetchGallery() {
+  const fetchGallery = useCallback(async () => {
     setLoading(true)
     const { data, error } = await supabase
       .from('event_gallery')
@@ -32,7 +27,11 @@ export default function Gallery() {
       setImages(data || [])
     }
     setLoading(false)
-  }
+  }, []) // Empty dependency array as it relies on stable setters
+
+  useEffect(() => {
+    fetchGallery()
+  }, [fetchGallery])
 
   async function handleUpload(e) {
     const file = e.target.files[0]
@@ -79,16 +78,16 @@ export default function Gallery() {
     if (!error) fetchGallery()
   }
 
-  if (authLoading) return <p style={{ color: 'var(--text-muted)' }}>Loading...</p>
+  if (authLoading) return <p className="text-gray-400">Loading...</p>
 
   return (
     <div>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 28 }}>
+      <div className="flex items-center justify-between mb-7">
         <div>
-          <p style={{ color: 'var(--cyan)', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>
+          <p className="text-[#00D4FF] text-[11px] font-bold uppercase tracking-[0.1em] mb-1.5">
             Member Portal
           </p>
-          <h1 style={{ fontFamily: 'Barlow Condensed, sans-serif', fontSize: 32, fontWeight: 800, color: '#fff', textTransform: 'uppercase' }}>
+          <h1 className="font-['Barlow_Condensed',sans-serif] text-[32px] font-extrabold text-white uppercase">
             Club Gallery
           </h1>
         </div>
@@ -96,7 +95,7 @@ export default function Gallery() {
           <button
             onClick={() => fileRef.current?.click()}
             disabled={uploading}
-            style={{ padding: '10px 20px', background: 'var(--cyan)', border: 'none', borderRadius: 8, color: '#0A0E1A', fontSize: 13, fontWeight: 700, cursor: uploading ? 'wait' : 'pointer' }}
+            className="px-5 py-2.5 bg-[#00D4FF] border-none rounded-lg text-[#0A0E1A] text-[13px] font-bold cursor-pointer disabled:cursor-wait"
           >
             {uploading ? 'Uploading...' : '+ Upload Photo'}
           </button>
@@ -105,37 +104,35 @@ export default function Gallery() {
       </div>
 
       {error && (
-        <div style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: 10, padding: '16px', marginBottom: 24, color: '#EF4444', fontSize: 14 }}>
+        <div className="bg-red-500/10 border border-red-500/25 rounded-xl p-4 mb-6 text-red-500 text-sm">
           {error}
         </div>
       )}
 
       {loading ? (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 16 }}>
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-4">
           {[1,2,3,4,5,6].map(i => (
-            <div key={i} style={{ aspectRatio: '1/1', background: 'rgba(255,255,255,0.03)', borderRadius: 12, border: '1px solid var(--border)' }} />
+            <div key={i} className="aspect-square bg-white/5 rounded-xl border border-white/10" />
           ))}
         </div>
       ) : images.length === 0 ? (
-        <div style={{ padding: 80, textAlign: 'center', background: 'var(--bg-card)', borderRadius: 16, border: '1px dashed var(--border)' }}>
-          <p style={{ color: 'var(--text-muted)', fontSize: 15 }}>No photos in the gallery yet.</p>
-          {isExecutive && <p style={{ color: 'var(--text-muted)', fontSize: 13, marginTop: 8 }}>Help us build our history by uploading event photos.</p>}
+        <div className="p-20 text-center bg-[#0D1829] rounded-2xl border border-dashed border-white/10">
+          <p className="text-gray-400 text-[15px]">No photos in the gallery yet.</p>
+          {isExecutive && <p className="text-gray-400 text-[13px] mt-2">Help us build our history by uploading event photos.</p>}
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 20 }}>
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-5">
           {images.map(img => (
-            <div key={img.id} style={{ position: 'relative', borderRadius: 12, overflow: 'hidden', background: 'var(--bg-card)', border: '1px solid var(--border)', transition: 'transform 0.2s', cursor: 'zoom-in' }}
-                 onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.02)'}
-                 onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}>
-              <img src={img.image_url} alt={img.caption} style={{ width: '100%', aspectRatio: '1/1', objectFit: 'cover' }} />
-              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '10px', background: 'linear-gradient(transparent, rgba(0,0,0,0.8))', color: '#fff', fontSize: 11 }}>
-                <p style={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{img.caption}</p>
-                <p style={{ opacity: 0.7 }}>By {img.profiles?.full_name || 'Member'}</p>
+            <div key={img.id} className="relative rounded-xl overflow-hidden bg-[#0D1829] border border-white/10 transition-transform duration-200 cursor-zoom-in hover:scale-[1.02] group">
+              <img src={img.image_url} alt={img.caption} className="w-full aspect-square object-cover" />
+              <div className="absolute bottom-0 left-0 right-0 p-2.5 bg-gradient-to-t from-black/80 to-transparent text-white text-[11px]">
+                <p className="font-semibold overflow-hidden text-ellipsis whitespace-nowrap">{img.caption}</p>
+                <p className="opacity-70">By {img.profiles?.full_name || 'Member'}</p>
               </div>
               {(isExecutive || img.uploaded_by === profile.id) && (
                 <button 
                   onClick={(e) => { e.stopPropagation(); handleDelete(img.id) }}
-                  style={{ position: 'absolute', top: 8, right: 8, width: 24, height: 24, borderRadius: '50%', background: 'rgba(239,68,68,0.8)', border: 'none', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>
+                  className="absolute top-2 right-2 w-6 h-6 rounded-full bg-red-500/80 border-none text-white cursor-pointer flex items-center justify-center text-sm opacity-0 group-hover:opacity-100 transition-opacity">
                   ×
                 </button>
               )}

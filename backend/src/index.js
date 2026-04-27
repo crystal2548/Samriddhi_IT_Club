@@ -15,7 +15,7 @@ app.use(cors({
 app.use(express.json())
 
 // Routes
-const uploadRoutes = require('./routes/uplode')
+const uploadRoutes = require('./routes/upload')
 const inviteRoutes = require('./routes/inviteRoutes')
 
 app.use('/api/upload', uploadRoutes)

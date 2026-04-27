@@ -4,7 +4,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../utils/supabase'
 import { useAuth } from '../../context/AuthContext'
-import { formatDate } from '../../utils/formatDate'
+import { formatDate } from '../../utils/formatters'
 
 export default function OCAnnouncements() {
   const { profile } = useAuth()

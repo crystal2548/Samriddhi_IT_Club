@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { supabase } from '../../utils/supabase'
-import { formatDate } from '../../utils/formatDate'
+import { formatDate } from '../../utils/formatters'
 import { useSiteSettings } from '../../context/SiteContext'
 
 function getInitials(name) {

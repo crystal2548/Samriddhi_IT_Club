@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { supabase } from '../../utils/supabase'
 import { useAuth } from '../../context/AuthContext'
-import { formatDateShort } from '../../utils/formatDate'
+import { formatDateShort } from '../../utils/formatters'
 
 const EMPTY_PROJECT = {
   title: '', description: '', banner_url: '',

@@ -1,4 +1,4 @@
-import { formatDateShort } from '../../utils/formatDate'
+import { formatDateShort } from '../../utils/formatters'
 
 export default function OpportunityItem({ opportunity }) {
   const typeColor = {

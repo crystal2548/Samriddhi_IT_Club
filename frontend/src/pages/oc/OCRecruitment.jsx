@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../utils/supabase'
 import { useAuth } from '../../context/AuthContext'
-import { formatDateTime } from '../../utils/formatDate'
+import { formatDateTime } from '../../utils/formatters'
 
 const EMPTY = { type: 'general', title: '', description: '', status: 'open', opens_at: '', closes_at: '' }
 
