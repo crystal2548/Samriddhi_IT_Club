@@ -1,9 +1,26 @@
-import { createContext, useContext, useEffect, useState, useCallback } from 'react'
+import React, { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react'
 import { supabase } from '../utils/supabase'
 
-const SiteContext = createContext({})
+export interface SiteSettings {
+  club_name: string;
+  tagline: string;
+  logo_url: string;
+  hero_cta_text: string;
+  contact_email: string;
+  instagram_url: string;
+  linkedin_url: string;
+  github_org_url: string;
+  maintenance_mode: boolean;
+  about_description: string;
+  about_story: string;
+  stat_members: string;
+  stat_events: string;
+  stat_alumni: string;
+  stat_partners: string;
+  [key: string]: any;
+}
 
-const DEFAULTS = {
+const DEFAULTS: SiteSettings = {
   club_name: 'Samriddhi IT Club',
   tagline: 'Code. Innovate. Connect.',
   logo_url: '',
@@ -21,8 +38,22 @@ const DEFAULTS = {
   stat_partners: '12+',
 }
 
-export function SiteProvider({ children }) {
-  const [settings, setSettings] = useState(DEFAULTS)
+export interface SiteContextType {
+  settings: SiteSettings;
+  loading: boolean;
+  refetch: () => Promise<void>;
+}
+
+const defaultContext: SiteContextType = {
+  settings: DEFAULTS,
+  loading: true,
+  refetch: async () => {},
+}
+
+const SiteContext = createContext<SiteContextType>(defaultContext)
+
+export function SiteProvider({ children }: { children: ReactNode }) {
+  const [settings, setSettings] = useState<SiteSettings>(DEFAULTS)
   const [loading, setLoading] = useState(true)
 
   const fetchSettings = useCallback(async () => {

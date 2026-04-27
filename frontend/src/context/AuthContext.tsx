@@ -1,11 +1,32 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import { supabase } from '../utils/supabase'
+import { User, UserRole } from '../types/index'
 
-const AuthContext = createContext({})
+export interface AuthContextType {
+  user: any | null; // Supabase auth user
+  profile: User | null;
+  loading: boolean;
+  role: UserRole | null;
+  isOC: boolean;
+  isExecutive: boolean;
+  isMember: boolean;
+}
 
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null)
-  const [profile, setProfile] = useState(null)
+const defaultAuthContext: AuthContextType = {
+  user: null,
+  profile: null,
+  loading: true,
+  role: null,
+  isOC: false,
+  isExecutive: false,
+  isMember: false,
+}
+
+const AuthContext = createContext<AuthContextType>(defaultAuthContext)
+
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const [user, setUser] = useState<any | null>(null)
+  const [profile, setProfile] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -31,17 +52,21 @@ export const AuthProvider = ({ children }) => {
     return () => subscription.unsubscribe()
   }, [])
 
-  const fetchProfile = async (userId) => {
+  const fetchProfile = async (userId: string) => {
     const { data } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', userId)
       .single()
-    setProfile(data)
+    if (data) {
+      setProfile(data as User)
+    } else {
+      setProfile(null)
+    }
     setLoading(false)
   }
 
-  const value = {
+  const value: AuthContextType = {
     user,
     profile,
     loading,

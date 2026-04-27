@@ -1,3 +1,4 @@
+import React from 'react'
 import { Link } from 'react-router-dom'
 import { useSiteSettings } from '../../context/SiteContext'
 
@@ -6,49 +7,49 @@ export default function Footer() {
   const { settings } = useSiteSettings()
 
   return (
-    <footer style={{ background: '#07090F', borderTop: '1px solid var(--border)' }}>
+    <footer className="bg-[#07090F] border-t border-white/10">
 
       {/* Accent gradient line */}
-      <div style={{ height: 1, background: 'linear-gradient(90deg, transparent, var(--cyan), var(--pink), transparent)' }} />
+      <div className="h-[1px] bg-gradient-to-r from-transparent via-[#00D4FF] to-[#FF2D9B]" />
 
-      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '56px 24px 0' }}>
+      <div className="max-w-[1200px] mx-auto pt-14 px-6">
 
         {/* ── Main grid ────────────────────────────────── */}
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: 48, marginBottom: 48 }}>
+        <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr_1fr_1fr] gap-12 mb-12">
 
           {/* Brand */}
           <div>
-            <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-              <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(0,212,255,0.08)', border: '1.5px solid rgba(0,212,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <Link to="/" className="flex items-center gap-2.5 mb-4 no-underline">
+              <div className="w-9 h-9 rounded-xl bg-[#00D4FF]/10 border-[1.5px] border-[#00D4FF]/30 flex items-center justify-center shrink-0">
                 {settings.logo_url ? (
-                  <img src={settings.logo_url} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: 8 }} />
+                  <img src={settings.logo_url} alt="Logo" className="w-full h-full object-contain rounded-lg" />
                 ) : (
                   <svg width="18" height="18" viewBox="0 0 16 16" fill="none">
-                    <rect x="6" y="6" width="4" height="4" rx="1" stroke="var(--cyan)" strokeWidth="1.5"/>
-                    <line x1="8" y1="1" x2="8" y2="6" stroke="var(--cyan)" strokeWidth="1.5" strokeLinecap="round"/>
-                    <line x1="8" y1="10" x2="8" y2="15" stroke="var(--cyan)" strokeWidth="1.5" strokeLinecap="round"/>
-                    <line x1="1" y1="8" x2="6" y2="8" stroke="var(--cyan)" strokeWidth="1.5" strokeLinecap="round"/>
-                    <line x1="10" y1="8" x2="15" y2="8" stroke="var(--cyan)" strokeWidth="1.5" strokeLinecap="round"/>
-                    <circle cx="8" cy="1" r="1" fill="var(--cyan)"/>
-                    <circle cx="8" cy="15" r="1" fill="var(--cyan)"/>
-                    <circle cx="1" cy="8" r="1" fill="var(--pink)"/>
-                    <circle cx="15" cy="8" r="1" fill="var(--pink)"/>
+                    <rect x="6" y="6" width="4" height="4" rx="1" stroke="#00D4FF" strokeWidth="1.5"/>
+                    <line x1="8" y1="1" x2="8" y2="6" stroke="#00D4FF" strokeWidth="1.5" strokeLinecap="round"/>
+                    <line x1="8" y1="10" x2="8" y2="15" stroke="#00D4FF" strokeWidth="1.5" strokeLinecap="round"/>
+                    <line x1="1" y1="8" x2="6" y2="8" stroke="#00D4FF" strokeWidth="1.5" strokeLinecap="round"/>
+                    <line x1="10" y1="8" x2="15" y2="8" stroke="#00D4FF" strokeWidth="1.5" strokeLinecap="round"/>
+                    <circle cx="8" cy="1" r="1" fill="#00D4FF"/>
+                    <circle cx="8" cy="15" r="1" fill="#00D4FF"/>
+                    <circle cx="1" cy="8" r="1" fill="#FF2D9B"/>
+                    <circle cx="15" cy="8" r="1" fill="#FF2D9B"/>
                   </svg>
                 )}
               </div>
               <div>
-                <span style={{ fontSize: 14, fontWeight: 800, color: '#fff', letterSpacing: '0.04em', display: 'block', lineHeight: 1 }}>
+                <span className="text-[14px] font-extrabold text-white tracking-[0.04em] block leading-none">
                   {settings.club_name.toUpperCase()}
                 </span>
               </div>
             </Link>
 
-            <p style={{ color: 'var(--text-muted)', fontSize: 13, lineHeight: 1.7, marginBottom: 24, maxWidth: 260 }}>
+            <p className="text-gray-400 text-[13px] leading-relaxed mb-6 max-w-[260px]">
               {settings.tagline || 'Empowering the next generation of tech innovators through collaboration and code.'}
             </p>
 
             {/* Social icons */}
-            <div style={{ display: 'flex', gap: 10 }}>
+            <div className="flex gap-2.5">
               {[
                 {
                   href: 'https://instagram.com',
@@ -84,25 +85,7 @@ export default function Footer() {
                   href={href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  style={{
-                    width: 36, height: 36, borderRadius: 8,
-                    background: 'rgba(255,255,255,0.04)',
-                    border: '1px solid rgba(255,255,255,0.08)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: 'var(--text-muted)',
-                    textDecoration: 'none',
-                    transition: 'all 0.2s',
-                  }}
-                  onMouseEnter={e => {
-                    e.currentTarget.style.borderColor = 'rgba(0,212,255,0.3)'
-                    e.currentTarget.style.color = 'var(--cyan)'
-                    e.currentTarget.style.background = 'rgba(0,212,255,0.06)'
-                  }}
-                  onMouseLeave={e => {
-                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'
-                    e.currentTarget.style.color = 'var(--text-muted)'
-                    e.currentTarget.style.background = 'rgba(255,255,255,0.04)'
-                  }}
+                  className="w-9 h-9 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-gray-400 no-underline transition-all duration-200 hover:border-[#00D4FF]/30 hover:text-[#00D4FF] hover:bg-[#00D4FF]/10"
                 >
                   {icon}
                 </a>
@@ -136,14 +119,14 @@ export default function Footer() {
         </div>
 
         {/* ── Divider ──────────────────────────────────── */}
-        <div style={{ height: 1, background: 'var(--border)', marginBottom: 24 }} />
+        <div className="h-[1px] bg-white/10 mb-6" />
 
         {/* ── Bottom bar ───────────────────────────────── */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 24, flexWrap: 'wrap', gap: 12 }}>
-          <p style={{ color: '#1E3A4A', fontSize: 12, fontFamily: 'JetBrains Mono, monospace' }}>
+        <div className="flex items-center justify-between pb-6 flex-wrap gap-3">
+          <p className="text-[#1E3A4A] text-[12px] font-['JetBrains_Mono',monospace]">
             © {year} {settings.club_name}. All rights reserved.
           </p>
-          <p style={{ color: '#1E3A4A', fontSize: 12, fontFamily: 'JetBrains Mono, monospace' }}>
+          <p className="text-[#1E3A4A] text-[12px] font-['JetBrains_Mono',monospace]">
             Built with ♥ by {settings.club_name.split(' ')[0]}
           </p>
         </div>
@@ -154,24 +137,18 @@ export default function Footer() {
 }
 
 /* ── Footer Column ─────────────────────────────────────────── */
-function FooterCol({ title, links }) {
+function FooterCol({ title, links }: { title: string, links: { label: string, to: string }[] }) {
   return (
     <div>
-      <h4 style={{
-        fontSize: 11, fontWeight: 700, textTransform: 'uppercase',
-        letterSpacing: '0.1em', color: '#fff',
-        marginBottom: 20,
-      }}>
+      <h4 className="text-[11px] font-bold uppercase tracking-[0.1em] text-white mb-5">
         {title}
       </h4>
-      <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <ul className="list-none flex flex-col gap-3">
         {links.map(link => (
           <li key={link.to}>
             <Link
               to={link.to}
-              style={{ color: 'var(--text-muted)', fontSize: 13, textDecoration: 'none', transition: 'color 0.15s' }}
-              onMouseEnter={e => e.currentTarget.style.color = 'var(--cyan)'}
-              onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
+              className="text-gray-400 text-[13px] no-underline transition-colors duration-150 hover:text-[#00D4FF]"
             >
               {link.label}
             </Link>
