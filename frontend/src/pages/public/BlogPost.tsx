@@ -1,15 +1,17 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
+import type { CSSProperties } from 'react'
 import { supabase } from '../../utils/supabase'
 import { formatDate } from '../../utils/formatters'
 import { useSiteSettings } from '../../context/SiteContext'
+import type { BlogPost as BlogPostType } from '../../types/index'
 
-function getInitials(name) {
+function getInitials(name: string | undefined): string {
   if (!name) return 'A'
-  return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+  return name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)
 }
 
-const CAT_COLORS = {
+const CAT_COLORS: Record<string, { bg: string; color: string; border: string }> = {
   development: { bg: 'rgba(0,212,255,0.1)',   color: 'var(--cyan)', border: 'rgba(0,212,255,0.25)' },
   'ai-ml':     { bg: 'rgba(255,45,155,0.1)',  color: 'var(--pink)', border: 'rgba(255,45,155,0.25)' },
   career:      { bg: 'rgba(167,139,250,0.1)', color: '#A78BFA',     border: 'rgba(167,139,250,0.25)' },
@@ -17,14 +19,15 @@ const CAT_COLORS = {
   design:      { bg: 'rgba(16,185,129,0.1)',  color: '#10B981',     border: 'rgba(16,185,129,0.25)' },
 }
 
-function getCatStyle(cat) {
-  return CAT_COLORS[cat?.toLowerCase()] || { bg: 'rgba(255,255,255,0.06)', color: 'var(--text-muted)', border: 'var(--border)' }
+function getCatStyle(cat: string | undefined): CSSProperties {
+  const style = CAT_COLORS[cat?.toLowerCase() ?? ''] || { bg: 'rgba(255,255,255,0.06)', color: 'var(--text-muted)', border: 'var(--border)' }
+  return { background: style.bg, color: style.color, border: `1px solid ${style.border}` }
 }
 
 export default function BlogPost() {
-  const { slug } = useParams()
-  const [post, setPost] = useState(null)
-  const [related, setRelated] = useState([])
+  const { slug } = useParams<{ slug: string }>()
+  const [post, setPost] = useState<BlogPostType | null>(null)
+  const [related, setRelated] = useState<BlogPostType[]>([])
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
   const { settings } = useSiteSettings()
@@ -39,22 +42,21 @@ export default function BlogPost() {
     const { data } = await supabase
       .from('blog_posts')
       .select('*, profiles(full_name, photo_url, bio, role, oc_position, github_url, linkedin_url)')
-      .eq('slug', slug)
+      .eq('slug', slug ?? '')
       .eq('status', 'published')
       .single()
 
     if (!data) { setNotFound(true); setLoading(false); return }
-    setPost(data)
+    setPost(data as BlogPostType)
 
-    // Fetch related posts same category
     const { data: relatedData } = await supabase
       .from('blog_posts')
-      .select('id, title, slug, category, read_time_mins, cover_image_url, published_at, profiles(full_name)')
+      .select('id, title, slug, category, read_time_mins, cover_image_url, published_at, status, profiles(full_name)')
       .eq('status', 'published')
       .eq('category', data.category)
       .neq('id', data.id)
       .limit(3)
-    setRelated(relatedData || [])
+    setRelated((relatedData ?? []) as BlogPostType[])
     setLoading(false)
   }
 
@@ -72,6 +74,8 @@ export default function BlogPost() {
       <Link to="/blog" style={{ color: 'var(--cyan)', fontSize: 13, textDecoration: 'none' }}>← Back to Blog</Link>
     </div>
   )
+
+  if (!post) return null
 
   const cs = getCatStyle(post.category)
 
@@ -132,7 +136,7 @@ export default function BlogPost() {
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: 12, color: 'var(--text-muted)', fontSize: 12, fontFamily: 'JetBrains Mono, monospace' }}>
-                  <span>{formatDate(post.published_at)}</span>
+                  <span>{formatDate(post.published_at ?? '')}</span>
                   <span>·</span>
                   <span>{post.read_time_mins} min read</span>
                 </div>
@@ -145,26 +149,19 @@ export default function BlogPost() {
 
       <div className="container mx-auto px-6" style={{ maxWidth: 800 }}>
 
-        {/* ── Divider replacing old meta row border ── */}
         <div style={{ height: 1, background: 'var(--border)', margin: '40px 0 40px' }}/>
-
 
         {/* ── Post content ────────────────────────────── */}
         <div style={{ marginBottom: 48 }}>
-          <div style={{
-            color: 'var(--text-secondary)',
-            fontSize: 15,
-            lineHeight: 1.85,
-            whiteSpace: 'pre-wrap',
-          }}>
+          <div style={{ color: 'var(--text-secondary)', fontSize: 15, lineHeight: 1.85, whiteSpace: 'pre-wrap' }}>
             {post.content}
           </div>
         </div>
 
         {/* ── Tags ────────────────────────────────────── */}
-        {post.tags?.length > 0 && (
+        {(post.tags?.length ?? 0) > 0 && (
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 40, paddingTop: 24, borderTop: '1px solid var(--border)' }}>
-            {post.tags.map(tag => (
+            {post.tags!.map((tag: string) => (
               <span key={tag} style={{ fontSize: 11, padding: '3px 10px', borderRadius: 6, background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', color: 'var(--text-muted)', fontFamily: 'JetBrains Mono, monospace' }}>
                 #{tag}
               </span>

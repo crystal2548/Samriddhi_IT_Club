@@ -1,9 +1,10 @@
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react'
+import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
+import type { Session, AuthChangeEvent } from '@supabase/supabase-js'
 import { supabase } from '../utils/supabase'
-import { User, UserRole } from '../types/index'
+import type { User, UserRole } from '../types/index'
 
 export interface AuthContextType {
-  user: any | null; // Supabase auth user
+  user: Session['user'] | null;
   profile: User | null;
   loading: boolean;
   role: UserRole | null;
@@ -25,21 +26,21 @@ const defaultAuthContext: AuthContextType = {
 const AuthContext = createContext<AuthContextType>(defaultAuthContext)
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<any | null>(null)
+  const [user, setUser] = useState<Session['user'] | null>(null)
   const [profile, setProfile] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session } }: { data: { session: Session | null } }) => {
       setUser(session?.user ?? null)
       if (session?.user) fetchProfile(session.user.id)
       else setLoading(false)
     })
 
-    // Listen for auth changes
+    // Listen for auth changes — let Supabase SDK infer callback types
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
+      (_event: AuthChangeEvent, session: Session | null) => {
         setUser(session?.user ?? null)
         if (session?.user) fetchProfile(session.user.id)
         else {
@@ -58,11 +59,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       .select('*')
       .eq('id', userId)
       .single()
-    if (data) {
-      setProfile(data as User)
-    } else {
-      setProfile(null)
-    }
+    setProfile(data ? (data as User) : null)
     setLoading(false)
   }
 

@@ -1,4 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
+import type { ChangeEvent, KeyboardEvent } from 'react'
+import type { CSSProperties } from 'react'
 import { supabase } from '../../utils/supabase'
 import { useAuth } from '../../context/AuthContext'
 
@@ -9,11 +11,21 @@ const SKILL_SUGGESTIONS = [
   'Docker', 'Git', 'AWS', 'Firebase', 'Supabase', 'C++', 'Java',
 ]
 
+interface ProfileForm {
+  full_name: string
+  phone: string
+  bio: string
+  college_year: string
+  github_url: string
+  linkedin_url: string
+  skills: string[]
+}
+
 export default function Profile() {
   const { user, profile } = useAuth()
-  const fileRef = useRef(null)
+  const fileRef = useRef<HTMLInputElement>(null)
 
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<ProfileForm>({
     full_name: '',
     phone: '',
     bio: '',
@@ -22,8 +34,8 @@ export default function Profile() {
     linkedin_url: '',
     skills: [],
   })
-  const [photo, setPhoto] = useState(null)
-  const [photoPreview, setPhotoPreview] = useState(null)
+  const [photo, setPhoto] = useState<File | null>(null)
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null)
   const [skillInput, setSkillInput] = useState('')
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
@@ -37,7 +49,7 @@ export default function Profile() {
         full_name:    profile.full_name    || '',
         phone:        profile.phone        || '',
         bio:          profile.bio          || '',
-        college_year: profile.college_year || '',
+        college_year: String(profile.college_year ?? ''),
         github_url:   profile.github_url   || '',
         linkedin_url: profile.linkedin_url || '',
         skills:       profile.skills       || [],
@@ -47,8 +59,8 @@ export default function Profile() {
   }, [profile])
 
   // Handle photo selection
-  function handlePhotoChange(e) {
-    const file = e.target.files[0]
+  function handlePhotoChange(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
     if (!file) return
     if (file.size > 5 * 1024 * 1024) {
       setError('Photo must be under 5MB.')
@@ -60,20 +72,20 @@ export default function Profile() {
   }
 
   // Upload photo to Cloudinary (Signed)
-  async function uploadPhoto() {
+  async function uploadPhoto(): Promise<string | null> {
     if (!photo) return null
     setUploading(true)
-    
+
     try {
-      // Step 1: Get signature from backend
       const signRes = await fetch(`${import.meta.env.VITE_API_URL}/api/upload/sign`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
       })
       if (!signRes.ok) throw new Error('Failed to get signature')
-      const { signature, timestamp, api_key, cloud_name } = await signRes.json()
+      const { signature, timestamp, api_key, cloud_name } = await signRes.json() as {
+        signature: string; timestamp: string; api_key: string; cloud_name: string
+      }
 
-      // Step 2: Upload to Cloudinary
       const data = new FormData()
       data.append('file', photo)
       data.append('timestamp', timestamp)
@@ -85,33 +97,31 @@ export default function Profile() {
         body: data,
       })
       if (!res.ok) throw new Error('Cloudinary upload failed')
-      
-      const result = await res.json()
+
+      const result = await res.json() as { secure_url?: string }
       setUploading(false)
       return result.secure_url || null
     } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Unknown error'
       console.error('Photo upload error:', err)
       setUploading(false)
-      setError(`Failed to upload photo: ${err.message}`)
+      setError(`Failed to upload photo: ${msg}`)
       return null
     }
   }
 
-  // Add skill
-  function addSkill(skill) {
+  function addSkill(skill: string) {
     const s = skill.trim()
     if (!s || form.skills.includes(s)) return
     setForm(prev => ({ ...prev, skills: [...prev.skills, s] }))
     setSkillInput('')
   }
 
-  // Remove skill
-  function removeSkill(skill) {
+  function removeSkill(skill: string) {
     setForm(prev => ({ ...prev, skills: prev.skills.filter(s => s !== skill) }))
   }
 
-  // Handle skill input keydown
-  function handleSkillKeyDown(e) {
+  function handleSkillKeyDown(e: KeyboardEvent<HTMLInputElement>) {
     if (e.key === 'Enter' || e.key === ',') {
       e.preventDefault()
       addSkill(skillInput)
@@ -121,7 +131,6 @@ export default function Profile() {
     }
   }
 
-  // Save profile
   async function handleSave() {
     if (!form.full_name.trim()) {
       setError('Full name is required.')
@@ -132,13 +141,11 @@ export default function Profile() {
 
     let photo_url = profile?.photo_url || null
 
-    // Upload new photo if selected
     if (photo) {
       const url = await uploadPhoto()
       if (url) {
         photo_url = url
       } else {
-        // uploadPhoto already sets the error message
         setSaving(false)
         return
       }
@@ -148,13 +155,12 @@ export default function Profile() {
       ...form,
       photo_url,
       college_year: form.college_year ? parseInt(form.college_year) : null,
-      // removed updated_at as it doesn't exist in the schema
     }
 
     const { error: updateError } = await supabase
       .from('profiles')
       .update(updates)
-      .eq('id', user.id)
+      .eq('id', user!.id)
 
     setSaving(false)
 
@@ -169,9 +175,9 @@ export default function Profile() {
     setTimeout(() => setSaved(false), 3000)
   }
 
-  const getInitials = (name) => {
+  const getInitials = (name: string | undefined) => {
     if (!name) return 'M'
-    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+    return name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)
   }
 
   return (
@@ -210,7 +216,6 @@ export default function Profile() {
           Profile Photo
         </h3>
         <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-          {/* Photo preview */}
           <div style={{ position: 'relative', flexShrink: 0 }}>
             {photoPreview ? (
               <img
@@ -223,7 +228,6 @@ export default function Profile() {
                 {getInitials(form.full_name)}
               </div>
             )}
-            {/* Edit overlay */}
             <button
               onClick={() => fileRef.current?.click()}
               style={{ position: 'absolute', bottom: 0, right: 0, width: 24, height: 24, borderRadius: '50%', background: 'var(--cyan)', border: '2px solid var(--bg-card)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
@@ -267,13 +271,13 @@ export default function Profile() {
           <Field
             label="Full Name *"
             value={form.full_name}
-            onChange={v => setForm(p => ({ ...p, full_name: v }))}
+            onChange={(v: string) => setForm(p => ({ ...p, full_name: v }))}
             placeholder="Your full name"
           />
           <Field
             label="Phone"
             value={form.phone}
-            onChange={v => setForm(p => ({ ...p, phone: v }))}
+            onChange={(v: string) => setForm(p => ({ ...p, phone: v }))}
             placeholder="+977-98XXXXXXXX"
           />
           <div>
@@ -293,6 +297,7 @@ export default function Profile() {
           <Field
             label="Email"
             value={profile?.email || ''}
+            onChange={() => {}}
             disabled
             placeholder="Your email"
           />
@@ -303,7 +308,7 @@ export default function Profile() {
               onChange={e => setForm(p => ({ ...p, bio: e.target.value }))}
               placeholder="Tell other members a bit about yourself..."
               rows={3}
-              style={{ ...IS, resize: 'vertical' }}
+              style={{ ...IS, resize: 'vertical' } as CSSProperties}
               onFocus={e => e.target.style.borderColor = 'rgba(0,212,255,0.4)'}
               onBlur={e => e.target.style.borderColor = 'var(--border)'}
             />
@@ -320,7 +325,6 @@ export default function Profile() {
           Press Enter or comma to add a skill. Click a skill to remove it.
         </p>
 
-        {/* Skills tags input */}
         <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 10px', display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 14, cursor: 'text', minHeight: 44 }}
           onClick={() => document.getElementById('skill-input')?.focus()}
         >
@@ -346,7 +350,6 @@ export default function Profile() {
           />
         </div>
 
-        {/* Suggestions */}
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
           {SKILL_SUGGESTIONS.filter(s => !form.skills.includes(s)).slice(0, 10).map(s => (
             <button
@@ -431,7 +434,7 @@ export default function Profile() {
 }
 
 /* ── Shared styles ───────────────────────────────────────────── */
-const LS = {
+const LS: CSSProperties = {
   display: 'block',
   fontSize: 11,
   fontWeight: 600,
@@ -441,7 +444,7 @@ const LS = {
   marginBottom: 6,
 }
 
-const IS = {
+const IS: CSSProperties = {
   width: '100%',
   background: 'rgba(255,255,255,0.04)',
   border: '1px solid var(--border)',
@@ -454,12 +457,21 @@ const IS = {
   transition: 'border-color 0.2s',
 }
 
-const SS = {
+const SS: CSSProperties = {
   ...IS,
   cursor: 'pointer',
 }
 
-function Field({ label, value, onChange, placeholder = '', type = 'text', disabled = false }) {
+interface FieldProps {
+  label: string
+  value: string
+  onChange: (v: string) => void
+  placeholder?: string
+  type?: string
+  disabled?: boolean
+}
+
+function Field({ label, value, onChange, placeholder = '', type = 'text', disabled = false }: FieldProps) {
   return (
     <div>
       <label style={LS}>{label}</label>

@@ -4,58 +4,78 @@ import { supabase } from '../../utils/supabase'
 import { useAuth } from '../../context/AuthContext'
 import { formatDate } from '../../utils/formatters'
 import emailjs from '@emailjs/browser'
+import type { Application } from '../../types/index'
 
-const STATUS_STYLES = {
+type AppStatus = 'pending' | 'shortlisted' | 'approved' | 'rejected'
+
+const STATUS_STYLES: Record<AppStatus, { bg: string; color: string; border: string; label: string }> = {
   pending:     { bg: 'bg-[#F59E0B]/10',  color: 'text-[#F59E0B]', border: 'border-[#F59E0B]/25',  label: 'Pending' },
   shortlisted: { bg: 'bg-[#A78BFA]/10', color: 'text-[#A78BFA]', border: 'border-[#A78BFA]/25', label: 'Shortlisted' },
   approved:    { bg: 'bg-[#10B981]/10',  color: 'text-[#10B981]', border: 'border-[#10B981]/25',  label: 'Approved' },
-  rejected:    { bg: 'bg-[#EF4444]/10',   color: 'text-[#EF4444]', border: 'border-[#EF4444]/25',   label: 'Rejected' },
+  rejected:    { bg: 'bg-[#EF4444]/10',  color: 'text-[#EF4444]', border: 'border-[#EF4444]/25',  label: 'Rejected' },
+}
+
+// Extended type for apps joined with recruitment_cycles
+interface AppWithCycle extends Application {
+  interview_notes?: string
+  reviewed_by?: string
+  reviewed_at?: string
+  recruitment_cycles?: { title: string; type: string } | null
 }
 
 export default function OCApplications() {
   const { profile } = useAuth()
   const queryClient = useQueryClient()
-  
+
   const [filter, setFilter] = useState('pending')
-  const [selected, setSelected] = useState(null)
+  const [selected, setSelected] = useState<AppWithCycle | null>(null)
   const [notes, setNotes] = useState('')
   const [saving, setSaving] = useState(false)
   const [inviting, setInviting] = useState(false)
   const [inviteRole, setInviteRole] = useState('member')
   const [invitePosition, setInvitePosition] = useState('')
 
-  const isPresidentOrVP = ['president', 'vice_president'].includes(profile?.oc_position)
+  const isPresidentOrVP = ['president', 'vice_president'].includes(profile?.oc_position ?? '')
 
-  const { data: apps = [], isLoading: loading } = useQuery({
+  const { data: apps = [], isLoading: loading } = useQuery<AppWithCycle[]>({
     queryKey: ['applications', filter],
     queryFn: async () => {
-      let query = supabase.from('applications').select('*, recruitment_cycles(title, type)').order('created_at', { ascending: false })
+      let query = supabase
+        .from('applications')
+        .select('*, recruitment_cycles(title, type)')
+        .order('created_at', { ascending: false })
       if (filter !== 'all') query = query.eq('status', filter)
       const { data } = await query
-      return data || []
+      return (data ?? []) as AppWithCycle[]
     }
   })
 
-  async function updateStatus(id, status) {
+  async function updateStatus(id: string, status: AppStatus) {
     setSaving(true)
-    await supabase.from('applications').update({ status, reviewed_by: profile?.id, reviewed_at: new Date().toISOString() }).eq('id', id)
-    queryClient.setQueryData(['applications', filter], prev => prev ? prev.map(a => a.id === id ? { ...a, status } : a) : [])
-    if (selected?.id === id) setSelected(prev => ({ ...prev, status }))
+    await supabase
+      .from('applications')
+      .update({ status, reviewed_by: profile?.id, reviewed_at: new Date().toISOString() })
+      .eq('id', id)
+    queryClient.setQueryData<AppWithCycle[]>(['applications', filter], prev =>
+      prev ? prev.map(a => a.id === id ? { ...a, status } : a) : []
+    )
+    if (selected?.id === id) setSelected(prev => prev ? ({ ...prev, status }) : null)
     setSaving(false)
   }
 
   async function saveNotes() {
     if (!selected) return
     setSaving(true)
-    await supabase.from('applications').update({ interview_notes: notes }).eq('id', selected.id)
-    queryClient.setQueryData(['applications', filter], prev => prev ? prev.map(a => a.id === selected.id ? { ...a, interview_notes: notes } : a) : [])
+    await supabase.from('applications').update({ interview_notes: notes }).eq('id', selected.id!)
+    queryClient.setQueryData<AppWithCycle[]>(['applications', filter], prev =>
+      prev ? prev.map(a => a.id === selected.id ? { ...a, interview_notes: notes } : a) : []
+    )
     setSaving(false)
   }
 
   async function handleInvite() {
     if (!selected || !isPresidentOrVP) return
     setInviting(true)
-    
     try {
       const resp = await fetch('http://localhost:5000/api/invite', {
         method: 'POST',
@@ -68,12 +88,9 @@ export default function OCApplications() {
           application_id: selected.id
         })
       })
+      const data = await resp.json() as { success: boolean; inviteLink?: string; error?: string }
 
-      const data = await resp.json()
-      
       if (data.success && data.inviteLink) {
-        console.log('Invite link generated:', data.inviteLink)
-        
         const emailParams = {
           to_name: selected.full_name,
           to_email: selected.email,
@@ -82,27 +99,26 @@ export default function OCApplications() {
           role: inviteRole,
           message: `You have been invited to join Samriddhi IT Club as a ${inviteRole}. Click here to set your password: ${data.inviteLink}`
         }
-
         const emailRes = await emailjs.send(
-          import.meta.env.VITE_EMAILJS_INVITE_SERVICE_ID,
-          import.meta.env.VITE_EMAILJS_INVITE_TEMPLATE_ID,
+          import.meta.env.VITE_EMAILJS_INVITE_SERVICE_ID as string,
+          import.meta.env.VITE_EMAILJS_INVITE_TEMPLATE_ID as string,
           emailParams,
-          import.meta.env.VITE_EMAILJS_INVITE_PUBLIC_KEY
+          import.meta.env.VITE_EMAILJS_INVITE_PUBLIC_KEY as string
         )
-
-        if (emailRes.status !== 200) {
-          throw new Error(`EmailJS failed with status ${emailRes.status}: ${emailRes.text}`)
-        }
+        if (emailRes.status !== 200) throw new Error(`EmailJS failed: ${emailRes.text}`)
 
         const now = new Date().toISOString()
-        queryClient.setQueryData(['applications', filter], prev => prev ? prev.map(a => a.id === selected.id ? { ...a, invited_at: now } : a) : [])
-        setSelected(prev => ({ ...prev, invited_at: now }))
+        queryClient.setQueryData<AppWithCycle[]>(['applications', filter], prev =>
+          prev ? prev.map(a => a.id === selected.id ? { ...a, invited_at: now } : a) : []
+        )
+        setSelected(prev => prev ? ({ ...prev, invited_at: now }) : null)
       } else {
         alert('Invite failed: ' + (data.error || 'Unknown error'))
       }
     } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Unknown error'
       console.error('Invite Error:', err)
-      alert('Failed to send invite: ' + err.message)
+      alert('Failed to send invite: ' + msg)
     } finally {
       setInviting(false)
     }
@@ -123,8 +139,8 @@ export default function OCApplications() {
         {FILTERS.map(f => (
           <button key={f} onClick={() => setFilter(f)}
             className={`px-4 py-1.5 rounded-full text-xs font-medium cursor-pointer capitalize transition-all duration-150 border ${
-              filter === f 
-                ? 'bg-[#00D4FF]/10 text-[#00D4FF] border-[#00D4FF]/30' 
+              filter === f
+                ? 'bg-[#00D4FF]/10 text-[#00D4FF] border-[#00D4FF]/30'
                 : 'bg-transparent text-gray-400 border-white/10 hover:border-white/20'
             }`}>
             {f}
@@ -152,7 +168,7 @@ export default function OCApplications() {
                 </thead>
                 <tbody>
                   {apps.map(app => {
-                    const st = STATUS_STYLES[app.status] || STATUS_STYLES.pending
+                    const st = STATUS_STYLES[app.status as AppStatus] || STATUS_STYLES.pending
                     return (
                       <tr key={app.id}
                         onClick={() => { setSelected(app); setNotes(app.interview_notes || '') }}
@@ -174,22 +190,22 @@ export default function OCApplications() {
                         <td className="p-3 px-4">
                           <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${st.bg} ${st.color} ${st.border}`}>{st.label}</span>
                         </td>
-                        <td className="p-3 px-4 text-gray-400 text-[11px] font-mono whitespace-nowrap">{formatDate(app.created_at)}</td>
+                        <td className="p-3 px-4 text-gray-400 text-[11px] font-mono whitespace-nowrap">{formatDate(app.created_at ?? '')}</td>
                         <td className="p-3 px-4">
                           <div className="flex gap-1" onClick={e => e.stopPropagation()}>
                             {app.status === 'pending' && (
-                              <button onClick={() => updateStatus(app.id, 'shortlisted')}
+                              <button onClick={() => updateStatus(app.id!, 'shortlisted')}
                                 className="px-2 py-1 rounded bg-[#A78BFA]/10 border border-[#A78BFA]/25 text-[#A78BFA] text-[10px] cursor-pointer hover:bg-[#A78BFA]/20">
                                 Shortlist
                               </button>
                             )}
                             {['pending', 'shortlisted'].includes(app.status) && (
                               <>
-                                <button onClick={() => updateStatus(app.id, 'approved')}
+                                <button onClick={() => updateStatus(app.id!, 'approved')}
                                   className="px-2 py-1 rounded bg-[#10B981]/10 border border-[#10B981]/25 text-[#10B981] text-[10px] cursor-pointer hover:bg-[#10B981]/20">
                                   Approve
                                 </button>
-                                <button onClick={() => updateStatus(app.id, 'rejected')}
+                                <button onClick={() => updateStatus(app.id!, 'rejected')}
                                   className="px-2 py-1 rounded bg-[#EF4444]/10 border border-[#EF4444]/25 text-[#EF4444] text-[10px] cursor-pointer hover:bg-[#EF4444]/20">
                                   Reject
                                 </button>
@@ -224,7 +240,7 @@ export default function OCApplications() {
               {selected.skills && (
                 <div>
                   <p className="text-gray-400 text-[10px] uppercase tracking-[0.08em] mb-1.5">Skills</p>
-                  <p className="text-white text-[13px] leading-relaxed">{selected.skills}</p>
+                  <p className="text-white text-[13px] leading-relaxed">{Array.isArray(selected.skills) ? selected.skills.join(', ') : String(selected.skills)}</p>
                 </div>
               )}
 
@@ -235,7 +251,6 @@ export default function OCApplications() {
                 </div>
               )}
 
-              {/* Interview notes */}
               <div>
                 <p className="text-gray-400 text-[10px] uppercase tracking-[0.08em] mb-1.5">Interview notes (internal)</p>
                 <textarea
@@ -251,11 +266,9 @@ export default function OCApplications() {
                 </button>
               </div>
 
-              {/* Invitation Section */}
               {selected.status === 'approved' && isPresidentOrVP && (
                 <div className="mt-2 pt-4 border-t border-white/10">
                   <p className="text-gray-400 text-[10px] uppercase tracking-[0.08em] mb-3">Invite to Club</p>
-                  
                   {selected.invited_at ? (
                     <div className="flex items-center gap-2 text-[#10B981] text-[13px] font-semibold bg-[#10B981]/10 px-3.5 py-2.5 rounded-lg border border-[#10B981]/20">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
@@ -293,14 +306,13 @@ export default function OCApplications() {
                 </div>
               )}
 
-              {/* Status actions */}
               {['pending', 'shortlisted'].includes(selected.status) && (
                 <div className="flex gap-2 pt-2 border-t border-white/10">
-                  <button onClick={() => updateStatus(selected.id, 'approved')}
+                  <button onClick={() => updateStatus(selected.id!, 'approved')}
                     className="flex-1 py-2 rounded-lg bg-[#10B981]/10 border border-[#10B981]/25 text-[#10B981] text-[12px] font-bold cursor-pointer hover:bg-[#10B981]/20">
                     ✓ Approve
                   </button>
-                  <button onClick={() => updateStatus(selected.id, 'rejected')}
+                  <button onClick={() => updateStatus(selected.id!, 'rejected')}
                     className="flex-1 py-2 rounded-lg bg-[#EF4444]/10 border border-[#EF4444]/25 text-[#EF4444] text-[12px] font-bold cursor-pointer hover:bg-[#EF4444]/20">
                     ✗ Reject
                   </button>
@@ -314,11 +326,12 @@ export default function OCApplications() {
   )
 }
 
-function InfoRow({ label, value }) {
+interface InfoRowProps { label: string; value: string | number | undefined }
+function InfoRow({ label, value }: InfoRowProps) {
   return (
     <div className="flex justify-between gap-3">
       <span className="text-gray-400 text-[12px] shrink-0">{label}</span>
-      <span className="text-white text-[12px] text-right">{value}</span>
+      <span className="text-white text-[12px] text-right">{value ?? '—'}</span>
     </div>
   )
 }

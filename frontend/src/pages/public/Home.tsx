@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '../../utils/supabase'
@@ -32,7 +32,7 @@ export default function Home() {
     }
   })
 
-  const { events = [], projects = [], posts = [], sponsors = [] } = homeData || {}
+  const { events = [], projects = [], posts = [] } = homeData || {}
 
   useEffect(() => {
     const word = HERO_WORDS[wordIndex]
