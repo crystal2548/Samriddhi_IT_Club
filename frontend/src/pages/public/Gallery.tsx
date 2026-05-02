@@ -31,19 +31,19 @@ export default function Gallery() {
   }
 
   return (
-    <div style={{ background: 'var(--bg-primary)', minHeight: '100vh', paddingTop: 80, paddingBottom: 100 }}>
-      <div className="container mx-auto px-6">
+    <div style={{ background: 'var(--bg-primary)', minHeight: '100vh', paddingTop: 64, paddingBottom: 100, fontFamily: "'Inter', -apple-system, sans-serif" }}>
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 32px', width: '100%' }}>
         
-        {/* ── Header ────────────────────────────────────────── */}
-        <div style={{ textAlign: 'center', marginBottom: 60 }}>
-           <div style={{ display: 'inline-block', padding: '4px 12px', background: 'rgba(0,212,255,0.1)', border: '1px solid rgba(0,212,255,0.2)', borderRadius: 20, marginBottom: 16 }}>
-             <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--cyan)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Visual History</span>
+        {/* ── Header ──────────────────────────────────────────── */}
+        <div style={{ paddingTop: 56, textAlign: 'center', marginBottom: 60 }}>
+           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '5px 14px', background: 'rgba(0,212,255,0.06)', border: '1px solid rgba(0,212,255,0.15)', borderRadius: 20, marginBottom: 20 }}>
+             <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--cyan)' }} />
+             <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--cyan)', textTransform: 'uppercase', letterSpacing: '0.15em' }}>Visual History</span>
            </div>
-           <h1 style={{ fontFamily: 'Barlow Condensed, sans-serif', fontSize: 'clamp(40px, 8vw, 72px)', fontWeight: 900, color: '#fff', textTransform: 'uppercase', lineHeight: 0.9, marginBottom: 24 }}>
-             CLUB <br/>
-             <span style={{ color: 'var(--cyan)' }}>GALLERY</span>
+           <h1 style={{ fontFamily: 'Barlow Condensed, sans-serif', fontSize: 'clamp(52px, 8vw, 84px)', fontWeight: 900, color: '#fff', textTransform: 'uppercase', lineHeight: 0.88, letterSpacing: '-0.02em', marginBottom: 24 }}>
+             CLUB GALLERY
            </h1>
-           <p style={{ color: 'var(--text-secondary)', fontSize: 16, maxWidth: 650, margin: '0 auto', lineHeight: 1.6 }}>
+           <p style={{ color: 'rgba(255,255,255,0.42)', fontSize: 15, maxWidth: 560, margin: '0 auto', lineHeight: 1.7 }}>
              Capturing the moments that define our community. From late-night hackathons to inspiring workshops and social gatherings.
            </p>
         </div>

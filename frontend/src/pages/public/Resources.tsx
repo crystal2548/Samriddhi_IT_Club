@@ -36,22 +36,32 @@ export default function Resources() {
   const tracks = ['All', ...new Set(resources.map(r => r.track).filter(Boolean))]
 
   return (
-    <div style={{ background: 'var(--bg-primary)', minHeight: '100vh', paddingTop: 80, paddingBottom: 100 }}>
-      <div className="container mx-auto px-6">
-        
-        {/* ── HERO ────────────────────────────────────────── */}
-        <div style={{ marginBottom: 64 }}>
-           <div style={{ display: 'inline-block', padding: '4px 12px', background: 'rgba(255,45,155,0.1)', border: '1px solid rgba(255,45,155,0.2)', borderRadius: 20, marginBottom: 16 }}>
-             <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--pink)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Member Hub</span>
-           </div>
-           <h1 style={{ fontFamily: 'Barlow Condensed, sans-serif', fontSize: 'clamp(36px, 6vw, 56px)', fontWeight: 900, color: '#fff', textTransform: 'uppercase', lineHeight: 0.9, marginBottom: 24 }}>
-             RESOURCES & <br/>
-             <span style={{ color: 'var(--cyan)' }}>OPPORTUNITIES</span>
-           </h1>
-           <p style={{ color: 'var(--text-secondary)', fontSize: 15, maxWidth: 500, lineHeight: 1.6 }}>
-             Access curated learning materials, technical documentation, and exclusive career paths handpicked by the Samriddhi IT community.
-           </p>
+    <div style={{ background: 'var(--bg-primary)', minHeight: '100vh', paddingTop: 64, paddingBottom: 100, fontFamily: "'Inter', -apple-system, sans-serif" }}>
+
+      {/* ── PAGE HERO ────────────────────────────────────────── */}
+      <div style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', paddingTop: 56, paddingBottom: 52, background: 'linear-gradient(135deg, rgba(0,10,30,0.8) 0%, rgba(10,14,26,0.9) 100%)' }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 32px', width: '100%' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 24, fontSize: 11, color: 'rgba(255,255,255,0.35)' }}>
+            <span>Home</span><span>›</span><span style={{ color: 'var(--cyan)' }}>Resources</span>
+          </div>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '5px 14px', background: 'rgba(255,45,155,0.07)', border: '1px solid rgba(255,45,155,0.2)', borderRadius: 20, marginBottom: 20 }}>
+            <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--pink)', display: 'inline-block' }} />
+            <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--pink)', textTransform: 'uppercase', letterSpacing: '0.15em' }}>Member Hub</span>
+          </div>
+          <h1 style={{ fontFamily: 'Barlow Condensed, sans-serif', fontSize: 'clamp(40px, 6vw, 68px)', fontWeight: 900, color: '#fff', textTransform: 'uppercase', lineHeight: 0.9, letterSpacing: '-0.02em', marginBottom: 6 }}>
+            RESOURCES
+          </h1>
+          <h1 style={{ fontFamily: 'Barlow Condensed, sans-serif', fontSize: 'clamp(40px, 6vw, 68px)', fontWeight: 900, color: 'var(--cyan)', textTransform: 'uppercase', lineHeight: 0.9, letterSpacing: '-0.02em', marginBottom: 20 }}>
+            & OPPORTUNITIES
+          </h1>
+          <div style={{ width: 60, height: 3, background: 'linear-gradient(90deg, var(--cyan), var(--pink))', borderRadius: 2, marginBottom: 20 }} />
+          <p style={{ color: 'rgba(255,255,255,0.42)', fontSize: 15, maxWidth: 560, lineHeight: 1.7 }}>
+            Access curated learning materials, technical documentation, and exclusive career paths handpicked by the Samriddhi IT community.
+          </p>
         </div>
+      </div>
+
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '52px 32px 0', width: '100%' }}>
 
         <div style={{ display: 'grid', gridTemplateColumns: '8fr 3fr', gap: 48, alignItems: 'start' }}>
           

@@ -2,19 +2,64 @@ import { useState } from 'react'
 import { supabase } from '../../utils/supabase'
 import emailjs from '@emailjs/browser'
 
+// ─── Shared label / input / select / textarea styles ──────────────────────
+const LS: React.CSSProperties = {
+  display: 'block',
+  color: 'rgba(255,255,255,0.4)',
+  fontSize: 11,
+  fontWeight: 700,
+  textTransform: 'uppercase',
+  letterSpacing: '0.05em',
+  marginBottom: 8,
+}
+const IS: React.CSSProperties = {
+  width: '100%',
+  boxSizing: 'border-box',
+  background: 'rgba(255,255,255,0.03)',
+  border: '1px solid rgba(255,255,255,0.1)',
+  borderRadius: 10,
+  padding: '12px 16px',
+  color: '#fff',
+  fontSize: 14,
+  outline: 'none',
+  transition: 'border-color 0.2s',
+  fontFamily: "'Inter', -apple-system, sans-serif",
+}
+const SS: React.CSSProperties = { ...IS, cursor: 'pointer' }
+const TS: React.CSSProperties = { ...IS, resize: 'vertical' }
+
+// ─── ContactItem ──────────────────────────────────────────────────────────
+function ContactItem({ icon, label, value }: { icon: string; label: string; value: string }) {
+  return (
+    <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+      <div style={{
+        width: 44, height: 44, borderRadius: 12, flexShrink: 0,
+        background: 'rgba(0,212,255,0.06)', border: '1px solid rgba(0,212,255,0.1)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20,
+      }}>
+        {icon}
+      </div>
+      <div>
+        <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 2 }}>{label}</p>
+        <p style={{ color: '#fff', fontSize: 14, fontWeight: 500 }}>{value}</p>
+      </div>
+    </div>
+  )
+}
+
+// ─── Main Component ────────────────────────────────────────────────────────
 export default function Contact() {
   const [form, setForm] = useState({ name: '', email: '', subject: 'General Inquiry', message: '' })
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState('')
 
-  async function handleSubmit(e) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
     setError('')
-    
+
     try {
-      // 1. Save to Supabase
       const { error: dbError } = await supabase
         .from('contact_messages')
         .insert({
@@ -23,25 +68,18 @@ export default function Contact() {
           subject: form.subject,
           message: form.message,
         })
-
       if (dbError) throw dbError
 
-      // 2. Send via EmailJS
       await emailjs.send(
         import.meta.env.VITE_EMAILJS_SERVICE_ID,
         import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
-        {
-          from_name: form.name,
-          from_email: form.email,
-          subject: form.subject,
-          message: form.message,
-        },
-        import.meta.env.VITE_EMAILJS_PUBLIC_KEY
+        { from_name: form.name, from_email: form.email, subject: form.subject, message: form.message },
+        import.meta.env.VITE_EMAILJS_PUBLIC_KEY,
       )
 
       setSuccess(true)
       setForm({ name: '', email: '', subject: 'General Inquiry', message: '' })
-    } catch (err) {
+    } catch (err: any) {
       console.error('Submit error:', err)
       setError(err.message || 'Something went wrong. Please try again later.')
     } finally {
@@ -51,41 +89,101 @@ export default function Contact() {
 
   const SOCIALS = [
     { name: 'Instagram', icon: '📸', url: '#', color: '#E1306C' },
-    { name: 'LinkedIn', icon: '🔗', url: '#', color: '#0077B5' },
-    { name: 'Facebook', icon: '👥', url: '#', color: '#1877F2' },
-    { name: 'GitHub', icon: '💻', url: '#', color: '#fff' },
+    { name: 'LinkedIn',  icon: '🔗', url: '#', color: '#0077B5' },
+    { name: 'Facebook',  icon: '👥', url: '#', color: '#1877F2' },
+    { name: 'GitHub',    icon: '💻', url: '#', color: '#fff'    },
   ]
 
   return (
-    <div style={{ background: 'var(--bg-primary)', minHeight: '100vh', paddingTop: 80, paddingBottom: 100 }}>
-      <div className="container mx-auto px-6">
-        
+    <div style={{
+      background: 'var(--bg-primary, #0A0E1A)',
+      minHeight: '100vh',
+      paddingTop: 80,
+      paddingBottom: 100,
+      fontFamily: "'Inter', -apple-system, sans-serif",
+    }}>
+
+      {/* ── Page-wide centring wrapper ─────────────────────────────────── */}
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px', width: '100%', boxSizing: 'border-box' }}>
+
+        {/* ── Hero ──────────────────────────────────────────────────────── */}
         <div style={{ textAlign: 'center', marginBottom: 60 }}>
-          <p style={{ color: 'var(--cyan)', fontSize: 13, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.2em', marginBottom: 12 }}>Get in Touch</p>
-          <h1 style={{ fontFamily: 'Barlow Condensed, sans-serif', fontSize: 'clamp(40px, 8vw, 64px)', fontWeight: 900, color: '#fff', textTransform: 'uppercase', letterSpacing: '-0.02em' }}>Contact Us</h1>
-          <div style={{ width: 80, height: 4, background: 'linear-gradient(90deg, var(--cyan), var(--pink))', borderRadius: 2, margin: '20px auto 0' }}/>
+          <p style={{ color: 'var(--cyan, #00D4FF)', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.2em', marginBottom: 12 }}>
+            Get in Touch
+          </p>
+          <h1 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 'clamp(40px, 8vw, 64px)', fontWeight: 900, color: '#fff', textTransform: 'uppercase', letterSpacing: '-0.02em', margin: 0 }}>
+            Contact Us
+          </h1>
+          <div style={{ width: 80, height: 3, background: 'linear-gradient(90deg, var(--cyan, #00D4FF), var(--pink, #FF2D9B))', borderRadius: 2, margin: '16px auto 20px' }} />
+          <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: 15, lineHeight: 1.7, maxWidth: 480, margin: '0 auto' }}>
+            Have a question or want to collaborate? We'd love to hear from you.
+          </p>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '5fr 7fr', gap: 60, alignItems: 'start' }}>
-          
-          {/* Left: Contact Info */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
-            <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 20, padding: 32 }}>
-              <h3 style={{ color: '#fff', fontSize: 20, fontWeight: 700, marginBottom: 24 }}>Connect With Us</h3>
-              
+        {/* ── Two-column layout ──────────────────────────────────────────
+            On mobile: single column (via CSS media query injected below)
+            On desktop: left sidebar + wider form              ─────────── */}
+        <style>{`
+          @media (max-width: 768px) {
+            .contact-grid { grid-template-columns: 1fr !important; }
+          }
+          input::placeholder, textarea::placeholder { color: rgba(255,255,255,0.2); }
+          input:focus, textarea:focus, select:focus { border-color: rgba(0,212,255,0.4) !important; }
+          select option { background: #0D1829; color: #fff; }
+        `}</style>
+
+        <div
+          className="contact-grid"
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'minmax(0, 380px) minmax(0, 1fr)',
+            gap: 32,
+            alignItems: 'start',
+          }}
+        >
+
+          {/* ── LEFT: Info cards ──────────────────────────────────────── */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+
+            {/* Connect With Us */}
+            <div style={{ background: 'var(--bg-card, #0D1829)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 20, padding: 32 }}>
+              <h3 style={{ color: '#fff', fontSize: 18, fontWeight: 700, marginTop: 0, marginBottom: 24 }}>Connect With Us</h3>
+
               <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-                <ContactItem icon="📧" label="Email" value="samriddhi.it.club@gmail.com" />
+                <ContactItem icon="📧" label="Email"    value="samriddhi.it.club@gmail.com"     />
                 <ContactItem icon="📍" label="Location" value="Samriddhi College, Bhaktapur, Nepal" />
-                <ContactItem icon="📞" label="Phone" value="+977 98XXXXXXX" />
+                <ContactItem icon="📞" label="Phone"    value="+977 98XXXXXXX"                  />
               </div>
 
-              <div style={{ marginTop: 40, paddingTop: 32, borderTop: '1px solid var(--border)' }}>
-                <p style={{ color: 'var(--text-muted)', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', mb: 16 }}>Follow US On</p>
-                <div style={{ display: 'flex', gap: 12, marginTop: 16 }}>
+              <div style={{ marginTop: 32, paddingTop: 28, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+                <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 14 }}>
+                  Follow Us On
+                </p>
+                <div style={{ display: 'flex', gap: 10 }}>
                   {SOCIALS.map(s => (
-                    <a key={s.name} href={s.url} style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, textDecoration: 'none', transition: 'all 0.2s' }}
-                       onMouseEnter={e => { e.currentTarget.style.borderColor = s.color; e.currentTarget.style.transform = 'translateY(-3px)' }}
-                       onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.transform = 'translateY(0)' }}>
+                    <a
+                      key={s.name}
+                      href={s.url}
+                      title={s.name}
+                      style={{
+                        width: 44, height: 44, borderRadius: 12,
+                        background: 'rgba(255,255,255,0.03)',
+                        border: '1px solid rgba(255,255,255,0.08)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: 18, textDecoration: 'none',
+                        transition: 'all 0.2s',
+                      }}
+                      onMouseEnter={e => {
+                        e.currentTarget.style.borderColor = s.color
+                        e.currentTarget.style.transform = 'translateY(-3px)'
+                        e.currentTarget.style.background = `${s.color}15`
+                      }}
+                      onMouseLeave={e => {
+                        e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'
+                        e.currentTarget.style.transform = 'translateY(0)'
+                        e.currentTarget.style.background = 'rgba(255,255,255,0.03)'
+                      }}
+                    >
                       {s.icon}
                     </a>
                   ))}
@@ -93,63 +191,183 @@ export default function Contact() {
               </div>
             </div>
 
-            {/* Map Placeholder */}
-            <div style={{ borderRadius: 20, overflow: 'hidden', border: '1px solid var(--border)', height: 260, background: 'rgba(0,0,0,0.2)', position: 'relative' }}>
-              <div style={{ position: 'absolute', inset: 0, opacity: 0.3, background: 'url(https://img.freepik.com/free-vector/world-map-geometric-style_23-2147501901.jpg) center/cover' }}/>
-              <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 12 }}>
-                <span style={{ fontSize: 24 }}>🏢</span>
-                <p style={{ color: '#fff', fontSize: 14, fontWeight: 600 }}>Visit Our Campus</p>
-                <button style={{ padding: '8px 16px', background: 'transparent', border: '1px solid var(--cyan)', borderRadius: 8, color: 'var(--cyan)', fontSize: 12, fontWeight: 600 }}>Open in Google Maps</button>
+            {/* Location Card */}
+            <div style={{ background: 'var(--bg-card, #0D1829)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 20, padding: 28, display: 'flex', flexDirection: 'column', gap: 20 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div style={{ width: 4, height: 20, background: 'linear-gradient(to bottom, #00D4FF, #FF2D9B)', borderRadius: 2, flexShrink: 0 }} />
+                <h3 style={{ color: '#fff', fontSize: 16, fontWeight: 700, margin: 0 }}>Our Location</h3>
               </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                {/* Address row */}
+                <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+                  <div style={{ width: 40, height: 40, borderRadius: 10, flexShrink: 0, background: 'rgba(0,212,255,0.06)', border: '1px solid rgba(0,212,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00D4FF" strokeWidth="2">
+                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                      <circle cx="12" cy="10" r="3"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 3, marginTop: 0 }}>Address</p>
+                    <p style={{ color: '#fff', fontSize: 14, fontWeight: 500, lineHeight: 1.5, margin: 0 }}>Samriddhi College, Bhaktapur, Nepal</p>
+                  </div>
+                </div>
+
+                {/* Hours row */}
+                <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+                  <div style={{ width: 40, height: 40, borderRadius: 10, flexShrink: 0, background: 'rgba(255,45,155,0.06)', border: '1px solid rgba(255,45,155,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FF2D9B" strokeWidth="2">
+                      <rect x="3" y="4" width="18" height="18" rx="2"/>
+                      <line x1="16" y1="2" x2="16" y2="6"/>
+                      <line x1="8"  y1="2" x2="8"  y2="6"/>
+                      <line x1="3"  y1="10" x2="21" y2="10"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 3, marginTop: 0 }}>Office Hours</p>
+                    <p style={{ color: '#fff', fontSize: 14, fontWeight: 500, margin: 0 }}>Sun – Fri, 10:00 AM – 4:00 PM</p>
+                  </div>
+                </div>
+              </div>
+
+              <a
+                href="https://www.google.com/maps/search/Samriddhi+College+Bhaktapur"
+                target="_blank" rel="noopener noreferrer"
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                  padding: '12px', borderRadius: 12,
+                  background: 'rgba(0,212,255,0.04)', border: '1px solid rgba(0,212,255,0.15)',
+                  color: '#00D4FF', fontSize: 13, fontWeight: 600, textDecoration: 'none',
+                  transition: 'all 0.2s',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0,212,255,0.1)'; e.currentTarget.style.borderColor = 'rgba(0,212,255,0.35)' }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(0,212,255,0.04)'; e.currentTarget.style.borderColor = 'rgba(0,212,255,0.15)' }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                  <circle cx="12" cy="10" r="3"/>
+                </svg>
+                Open in Google Maps
+              </a>
             </div>
           </div>
 
-          {/* Right: Contact Form */}
-          <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 24, padding: 40, boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }}>
+          {/* ── RIGHT: Contact Form ────────────────────────────────────── */}
+          <div style={{
+            background: 'var(--bg-card, #0D1829)',
+            border: '1px solid rgba(255,255,255,0.08)',
+            borderRadius: 24,
+            padding: 'clamp(24px, 4vw, 40px)',
+            boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
+          }}>
             {success ? (
               <div style={{ textAlign: 'center', padding: '40px 0' }}>
-                <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(16,185,129,0.1)', border: '1px solid #10B981', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px', fontSize: 32 }}>✓</div>
+                <div style={{
+                  width: 64, height: 64, borderRadius: '50%',
+                  background: 'rgba(16,185,129,0.1)', border: '1px solid #10B981',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  margin: '0 auto 24px', fontSize: 28, color: '#10B981',
+                }}>
+                  ✓
+                </div>
                 <h2 style={{ color: '#fff', fontSize: 24, fontWeight: 700, marginBottom: 12 }}>Message Sent!</h2>
-                <p style={{ color: 'var(--text-muted)', fontSize: 15, marginBottom: 24 }}>We've received your inquiry and will get back to you within 24-48 hours.</p>
-                <button onClick={() => setSuccess(false)} style={{ background: 'var(--cyan)', border: 'none', borderRadius: 10, padding: '12px 32px', color: '#0A0E1A', fontWeight: 700, cursor: 'pointer' }}>Send Another Message</button>
+                <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 15, marginBottom: 24 }}>
+                  We've received your inquiry and will get back to you within 24–48 hours.
+                </p>
+                <button
+                  onClick={() => setSuccess(false)}
+                  style={{ background: '#00D4FF', border: 'none', borderRadius: 10, padding: '12px 32px', color: '#0A0E1A', fontWeight: 700, cursor: 'pointer', fontSize: 14 }}
+                >
+                  Send Another Message
+                </button>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-                <div style={{ gridColumn: 'span 2' }}>
-                  <h3 style={{ color: '#fff', fontSize: 20, fontWeight: 700, marginBottom: 8 }}>Send us a Message</h3>
-                  <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 24 }}>Have a question or inquiry? Just fill out the form below.</p>
+              <form onSubmit={handleSubmit}>
+                <h3 style={{ color: '#fff', fontSize: 20, fontWeight: 700, marginTop: 0, marginBottom: 6 }}>Send us a Message</h3>
+                <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14, marginBottom: 28 }}>Have a question or inquiry? Just fill out the form below.</p>
+
+                {/* Name + Email row */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 20 }} className="form-two-col">
+                  <style>{`@media (max-width: 540px) { .form-two-col { grid-template-columns: 1fr !important; } }`}</style>
+                  <div>
+                    <label style={LS}>Full Name</label>
+                    <input
+                      required
+                      value={form.name}
+                      onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
+                      placeholder="John Doe"
+                      style={IS}
+                    />
+                  </div>
+                  <div>
+                    <label style={LS}>Email Address</label>
+                    <input
+                      required
+                      type="email"
+                      value={form.email}
+                      onChange={e => setForm(p => ({ ...p, email: e.target.value }))}
+                      placeholder="john@example.com"
+                      style={IS}
+                    />
+                  </div>
                 </div>
 
-                <div style={{ gridColumn: 'span 1' }}>
-                  <label style={LS}>Full Name</label>
-                  <input required value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} placeholder="John Doe" style={IS} />
-                </div>
-                <div style={{ gridColumn: 'span 1' }}>
-                  <label style={LS}>Email Address</label>
-                  <input required type="email" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} placeholder="john@example.com" style={IS} />
-                </div>
-
-                <div style={{ gridColumn: 'span 2' }}>
+                {/* Subject */}
+                <div style={{ marginBottom: 20 }}>
                   <label style={LS}>Subject</label>
-                  <select value={form.subject} onChange={e => setForm(p => ({ ...p, subject: e.target.value }))} style={SS}>
+                  <select
+                    value={form.subject}
+                    onChange={e => setForm(p => ({ ...p, subject: e.target.value }))}
+                    style={SS}
+                  >
                     <option>General Inquiry</option>
                     <option>Event Sponsorship</option>
                     <option>Technical Support</option>
                   </select>
                 </div>
 
-                <div style={{ gridColumn: 'span 2' }}>
+                {/* Message */}
+                <div style={{ marginBottom: 20 }}>
                   <label style={LS}>Your Message</label>
-                  <textarea required rows={5} value={form.message} onChange={e => setForm(p => ({ ...p, message: e.target.value }))} placeholder="Tell us what's on your mind..." style={TS} />
+                  <textarea
+                    required
+                    rows={5}
+                    value={form.message}
+                    onChange={e => setForm(p => ({ ...p, message: e.target.value }))}
+                    placeholder="Tell us what's on your mind..."
+                    style={TS}
+                  />
                 </div>
 
-                {error && <div style={{ gridColumn: 'span 2', color: '#EF4444', fontSize: 13, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', padding: '10px', borderRadius: 8 }}>{error}</div>}
+                {/* Error */}
+                {error && (
+                  <div style={{ color: '#EF4444', fontSize: 13, background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', padding: '10px 14px', borderRadius: 8, marginBottom: 16 }}>
+                    {error}
+                  </div>
+                )}
 
-                <div style={{ gridColumn: 'span 2', marginTop: 10 }}>
-                  <button type="submit" disabled={loading} style={{ width: '100%', padding: '14px', background: 'var(--cyan)', border: 'none', borderRadius: 10, color: '#0A0E1A', fontSize: 14, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', cursor: loading ? 'wait' : 'pointer', transition: 'all 0.2s', opacity: loading ? 0.7 : 1 }}>
-                    {loading ? 'Sending...' : 'Send Message Now'}
-                  </button>
-                </div>
+                {/* Submit */}
+                <button
+                  type="submit"
+                  disabled={loading}
+                  style={{
+                    width: '100%',
+                    padding: '14px',
+                    background: '#00D4FF',
+                    border: 'none',
+                    borderRadius: 10,
+                    color: '#0A0E1A',
+                    fontSize: 14,
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    cursor: loading ? 'wait' : 'pointer',
+                    transition: 'all 0.2s',
+                    opacity: loading ? 0.7 : 1,
+                  }}
+                >
+                  {loading ? 'Sending…' : 'Send Message Now'}
+                </button>
               </form>
             )}
           </div>
@@ -158,20 +376,3 @@ export default function Contact() {
     </div>
   )
 }
-
-function ContactItem({ icon, label, value }) {
-  return (
-    <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
-      <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(0,212,255,0.06)', border: '1px solid rgba(0,212,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>{icon}</div>
-      <div>
-        <p style={{ color: 'var(--text-muted)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 2 }}>{label}</p>
-        <p style={{ color: '#fff', fontSize: 14, fontWeight: 500 }}>{value}</p>
-      </div>
-    </div>
-  )
-}
-
-const LS = { display: 'block', color: 'var(--text-muted)', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }
-const IS = { width: '100%', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border)', borderRadius: 10, padding: '12px 16px', color: '#fff', fontSize: 14, outline: 'none', transition: 'border-color 0.2s' }
-const SS = { ...IS, cursor: 'pointer' }
-const TS = { ...IS, resize: 'vertical', fontFamily: 'Inter, sans-serif' }

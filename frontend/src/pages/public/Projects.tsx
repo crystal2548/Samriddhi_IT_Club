@@ -5,6 +5,15 @@ import { supabase } from '../../utils/supabase'
 import ProjectCard from '../../components/shared/ProjectCard'
 import { useSiteSettings } from '../../context/SiteContext'
 
+// ── Shared container ──────────────────────────────────────────────────────
+function Container({ children, style = {} }: { children: React.ReactNode; style?: React.CSSProperties }) {
+  return (
+    <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 32px', boxSizing: 'border-box', width: '100%', ...style }}>
+      {children}
+    </div>
+  )
+}
+
 export default function Projects() {
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState('all')
@@ -13,108 +22,215 @@ export default function Projects() {
   const { data: projects = [], isLoading: loading } = useQuery({
     queryKey: ['public_projects'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('projects').select('*').order('created_at', { ascending: false })
+      const { data, error } = await supabase
+        .from('projects')
+        .select('*')
+        .order('created_at', { ascending: false })
       if (error) throw error
       return data || []
-    }
+    },
   })
 
   const filteredProjects = projects.filter((p: any) => {
-    const matchesSearch = p.title.toLowerCase().includes(search.toLowerCase()) || 
-                          p.description?.toLowerCase().includes(search.toLowerCase())
-    const matchesFilter = filter === 'all' || p.tech_stack?.some((t: string) => t.toLowerCase() === filter.toLowerCase())
+    const matchesSearch =
+      p.title.toLowerCase().includes(search.toLowerCase()) ||
+      p.description?.toLowerCase().includes(search.toLowerCase())
+    const matchesFilter =
+      filter === 'all' || p.tech_stack?.some((t: string) => t.toLowerCase() === filter.toLowerCase())
     return matchesSearch && matchesFilter
   })
 
-  // Get unique tags for filter
   const allTags = Array.from(new Set(projects.flatMap((p: any) => p.tech_stack || []))) as string[]
 
   return (
-    <div className="bg-[#0A0E1A] min-h-screen pt-20 pb-20">
-      <div className="container mx-auto px-6">
-        
-        {/* ── Header ─────────────────────────────────── */}
-        <div className="mb-12">
-          <p className="text-[#00D4FF] text-[11px] font-bold uppercase tracking-[0.1em] mb-2">Our Works</p>
-          <h1 className="font-['Barlow_Condensed',sans-serif] text-[clamp(32px,5vw,48px)] font-extrabold text-white uppercase tracking-[0.02em] mb-4">PROJECTS</h1>
-          <p className="text-gray-400 text-[14px] leading-[1.6] max-w-[600px]">
-            Explore the innovative solutions and creative projects built by the members of {settings.club_name}. From web apps to AI models, we're building the future, one commit at a time.
-          </p>
-        </div>
+    <>
+      <style>{`
+        .projects-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 24px;
+        }
+        @media (max-width: 1024px) { .projects-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 640px)  { .projects-grid { grid-template-columns: 1fr; } }
 
-        {/* ── Filter Bar ─────────────────────────────── */}
-        <div className="flex flex-wrap gap-4 mb-8 items-center justify-between">
-          <div className="flex flex-wrap gap-2.5">
-            <button 
-              onClick={() => setFilter('all')}
-              className={`px-4 py-2 rounded-lg text-[13px] font-semibold cursor-pointer transition-all border ${
-                filter === 'all' ? 'bg-[#00D4FF] border-[#00D4FF] text-[#0A0E1A] shadow-[0_0_15px_rgba(0,212,255,0.2)]' : 'bg-white/5 border-white/10 text-gray-500 hover:text-white hover:border-[#00D4FF]/30 hover:bg-[#00D4FF]/5'
-              }`}
-            >All Projects</button>
-            {allTags.slice(0, 6).map(tag => (
-              <button 
-                key={tag}
-                onClick={() => setFilter(tag)}
-                className={`px-4 py-2 rounded-lg text-[13px] font-semibold cursor-pointer transition-all border ${
-                  filter === tag ? 'bg-[#00D4FF] border-[#00D4FF] text-[#0A0E1A] shadow-[0_0_15px_rgba(0,212,255,0.2)]' : 'bg-white/5 border-white/10 text-gray-500 hover:text-white hover:border-[#00D4FF]/30 hover:bg-[#00D4FF]/5'
-                }`}
-              >{tag}</button>
-            ))}
-          </div>
+        .filter-pill-inactive:hover {
+          color: rgba(255,255,255,0.65) !important;
+          border-color: rgba(255,255,255,0.22) !important;
+        }
+        .search-input:focus { border-color: rgba(0,212,255,0.4) !important; outline: none; }
+        .search-input::placeholder { color: rgba(255,255,255,0.2); }
+        .cta-link:hover { background: #fff !important; }
+      `}</style>
 
-          <div className="relative min-w-[280px]">
-            <input 
-              type="text" 
-              placeholder="Search projects..." 
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="w-full bg-white/5 border border-white/10 rounded-lg py-2.5 pr-4 pl-10 text-white text-[14px] outline-none transition-colors focus:border-[#00D4FF]/40"
-            />
-            <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          </div>
-        </div>
+      <div style={{ background: '#0A0E1A', minHeight: '100vh', paddingTop: 0, fontFamily: "'Inter', -apple-system, sans-serif" }}>
 
-        {/* ── Content ────────────────────────────────── */}
-        {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[1,2,3,4,5,6].map(i => (
-              <div key={i} className="bg-[#0D1829] border border-white/10 rounded-xl overflow-hidden h-[320px] animate-pulse">
-                <div className="h-[180px] bg-white/5"/>
-                <div className="p-5 flex flex-col gap-3">
-                  <div className="h-3 rounded bg-white/5 w-[60%]"/>
-                  <div className="h-2.5 rounded bg-white/5 w-[80%]"/>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : filteredProjects.length === 0 ? (
-          <div className="py-20 px-6 text-center border border-dashed border-white/10 rounded-2xl">
-            <div className="w-16 h-16 rounded-full bg-[#00D4FF]/10 flex items-center justify-center mx-auto mb-5">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00D4FF" strokeWidth="1.5"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+        {/* ── Hero ──────────────────────────────────────────────────── */}
+        <div style={{ paddingTop: 96, paddingBottom: 56, borderBottom: '1px solid rgba(255,255,255,0.08)', background: 'linear-gradient(135deg, #0A0E1A 0%, #0D1829 100%)' }}>
+          <Container>
+            {/* Breadcrumb */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 28, fontSize: 11, color: 'rgba(255,255,255,0.35)' }}>
+              <Link to="/" style={{ color: 'inherit', textDecoration: 'none' }}>Home</Link>
+              <span>›</span>
+              <span style={{ color: '#00D4FF' }}>Projects</span>
             </div>
-            <h3 className="text-white text-[18px] font-bold mb-2">No projects found</h3>
-            <p className="text-gray-400 text-[14px]">Try adjusting your search or filter to find what you're looking for.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredProjects.map((project: any) => (
-              <ProjectCard key={project.id} project={project} />
-            ))}
-          </div>
-        )}
 
-        {/* ── CTA ────────────────────────────────────── */}
-        {!loading && projects.length > 0 && (
-          <div className="mt-20 bg-gradient-to-br from-[#00D4FF]/5 to-[#FF2D9B]/5 border border-[#00D4FF]/10 rounded-[20px] p-12 text-center">
-            <h2 className="font-['Barlow_Condensed',sans-serif] text-[28px] font-extrabold text-white uppercase mb-3">Have a project in mind?</h2>
-            <p className="text-gray-400 text-[14px] max-w-[500px] mx-auto mb-7 leading-relaxed">
-              We're always looking for new ideas and collaborations. If you have a project you'd like to build with us, let's talk.
+            <h1 style={{
+              fontFamily: "'Barlow Condensed', sans-serif",
+              fontSize: 'clamp(48px, 7vw, 72px)',
+              fontWeight: 900, color: '#fff',
+              textTransform: 'uppercase',
+              letterSpacing: '-0.02em',
+              lineHeight: 1, margin: '0 0 16px',
+            }}>
+              Projects
+            </h1>
+
+            <div style={{ width: 60, height: 3, background: 'linear-gradient(90deg, #00D4FF, #FF2D9B)', borderRadius: 2, marginBottom: 20 }} />
+
+            <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 15, lineHeight: 1.7, maxWidth: 600, margin: 0 }}>
+              Explore the innovative solutions and creative projects built by the members of {settings.club_name}. From web apps to AI models, we're building the future, one commit at a time.
             </p>
-            <Link to="/join" className="inline-block px-8 py-3 rounded-lg bg-[#00D4FF] text-[#0A0E1A] text-[13px] font-bold uppercase tracking-[0.05em] hover:bg-white transition-colors shadow-[0_0_15px_rgba(0,212,255,0.15)]">Suggest a Project</Link>
-          </div>
-        )}
+          </Container>
+        </div>
 
+        {/* ── Body ──────────────────────────────────────────────────── */}
+        <div style={{ padding: '40px 0 80px' }}>
+          <Container>
+
+            {/* ── Filter Bar ──────────────────────────────────────── */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 16, marginBottom: 32 }}>
+
+              {/* Tag pills */}
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                {(['all', ...allTags.slice(0, 6)] as string[]).map(tag => {
+                  const active = filter === tag
+                  return (
+                    <button
+                      key={tag}
+                      className={!active ? 'filter-pill-inactive' : ''}
+                      onClick={() => setFilter(tag)}
+                      style={{
+                        padding: '7px 16px', borderRadius: 100, fontSize: 12, fontWeight: 600,
+                        cursor: 'pointer', border: '1px solid', transition: 'all 0.15s',
+                        background:  active ? 'rgba(0,212,255,0.1)'      : 'rgba(255,255,255,0.04)',
+                        color:       active ? '#00D4FF'                  : 'rgba(255,255,255,0.4)',
+                        borderColor: active ? 'rgba(0,212,255,0.35)'     : 'rgba(255,255,255,0.1)',
+                        boxShadow:   active ? '0 0 12px rgba(0,212,255,0.1)' : 'none',
+                        fontFamily: "'Inter', sans-serif",
+                      }}
+                    >
+                      {tag === 'all' ? 'All Projects' : tag}
+                    </button>
+                  )
+                })}
+              </div>
+
+              {/* Search */}
+              <div style={{ position: 'relative', minWidth: 240 }}>
+                <svg style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.3)', pointerEvents: 'none' }}
+                  width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+                <input
+                  className="search-input"
+                  type="text"
+                  placeholder="Search projects…"
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  style={{
+                    width: '100%', boxSizing: 'border-box',
+                    background: '#0D1829', border: '1px solid rgba(255,255,255,0.1)',
+                    borderRadius: 100, padding: '9px 16px 9px 38px',
+                    color: '#fff', fontSize: 13, transition: 'border-color 0.2s',
+                    fontFamily: "'Inter', sans-serif",
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* ── Grid / States ───────────────────────────────────── */}
+            {loading ? (
+              <div className="projects-grid">
+                {[1,2,3,4,5,6].map(i => (
+                  <div key={i} style={{ background: '#0D1829', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16, overflow: 'hidden', height: 320 }}>
+                    <div style={{ height: 180, background: 'rgba(255,255,255,0.04)' }} />
+                    <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 12 }}>
+                      <div style={{ height: 12, borderRadius: 4, background: 'rgba(255,255,255,0.05)', width: '60%' }} />
+                      <div style={{ height: 10, borderRadius: 4, background: 'rgba(255,255,255,0.04)', width: '80%' }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : filteredProjects.length === 0 ? (
+              <div style={{ padding: '80px 24px', textAlign: 'center', border: '1px dashed rgba(255,255,255,0.1)', borderRadius: 20 }}>
+                <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(0,212,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00D4FF" strokeWidth="1.5">
+                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                    <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+                    <line x1="12" y1="22.08" x2="12" y2="12"/>
+                  </svg>
+                </div>
+                <h3 style={{ color: '#fff', fontSize: 18, fontWeight: 700, marginBottom: 8 }}>No projects found</h3>
+                <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14, margin: 0 }}>
+                  Try adjusting your search or filter to find what you're looking for.
+                </p>
+              </div>
+            ) : (
+              <div className="projects-grid">
+                {filteredProjects.map((project: any) => (
+                  <ProjectCard key={project.id} project={project} />
+                ))}
+              </div>
+            )}
+
+            {/* ── CTA ─────────────────────────────────────────────── */}
+            {!loading && projects.length > 0 && (
+              <div style={{
+                marginTop: 80,
+                background: 'linear-gradient(135deg, rgba(0,212,255,0.05), rgba(255,45,155,0.05))',
+                border: '1px solid rgba(0,212,255,0.1)',
+                borderRadius: 20,
+                padding: 'clamp(40px, 6vw, 60px) clamp(24px, 5vw, 48px)',
+                textAlign: 'center',
+              }}>
+                <h2 style={{
+                  fontFamily: "'Barlow Condensed', sans-serif",
+                  fontSize: 'clamp(24px, 3vw, 32px)',
+                  fontWeight: 800, color: '#fff',
+                  textTransform: 'uppercase',
+                  letterSpacing: '-0.01em',
+                  margin: '0 0 12px',
+                }}>
+                  Have a project in mind?
+                </h2>
+                <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14, maxWidth: 500, margin: '0 auto 28px', lineHeight: 1.7 }}>
+                  We're always looking for new ideas and collaborations. If you have a project you'd like to build with us, let's talk.
+                </p>
+                <Link
+                  to="/join"
+                  className="cta-link"
+                  style={{
+                    display: 'inline-block',
+                    padding: '12px 32px',
+                    borderRadius: 10,
+                    background: '#00D4FF',
+                    color: '#0A0E1A',
+                    fontSize: 13,
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    textDecoration: 'none',
+                    transition: 'background 0.2s',
+                    boxShadow: '0 0 20px rgba(0,212,255,0.15)',
+                  }}
+                >
+                  Suggest a Project
+                </Link>
+              </div>
+            )}
+          </Container>
+        </div>
       </div>
-    </div>
+    </>
   )
 }

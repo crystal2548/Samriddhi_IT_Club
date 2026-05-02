@@ -500,7 +500,7 @@ export default function About() {
             </Reveal>
 
             {/* Timeline */}
-            <div style={{ flex: 1, minWidth: 0, paddingLeft: 40, borderLeft: '1px solid rgba(255,255,255,0.05)', position: 'relative' }}>
+            <div style={{ flex: 1, minWidth: 0, paddingLeft: 52, borderLeft: '1px solid rgba(255,255,255,0.05)', position: 'relative' }}>
               {/* Animated line */}
               <div style={{
                 position: 'absolute', left: -1, top: 0, bottom: 0, width: 2,
@@ -595,8 +595,8 @@ export default function About() {
                   Join {settings.stat_members || '120+'} active innovators already onboard — workshops, hackathons, industry connections, and real project experience.
                 </p>
                 <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                  <Link to="/apply" className="btn-solid" style={{ borderRadius: 12 }}>Join Now</Link>
-                  <Link to="/events" className="btn-outline" style={{ borderRadius: 12 }}>Browse Events</Link>
+                  <Link to="/apply" className="btn-solid" style={{ borderRadius: 100 }}>Join Now</Link>
+                  <Link to="/events" className="btn-outline" style={{ borderRadius: 100 }}>Browse Events</Link>
                 </div>
               </div>
 

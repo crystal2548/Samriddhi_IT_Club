@@ -513,8 +513,13 @@ export default function Team() {
         </div>
       </section>
 
-      {/* ── FILTERS ─────────────────────────────────────── */}
-      <div style={{ display: 'flex', justifyContent: 'center', gap: 10, flexWrap: 'wrap', padding: '0 32px 56px' }}>
+      {/* ── FILTERS ─────────────────────────────────── */}
+      <div style={{
+        display: 'flex', justifyContent: 'center', gap: 10, flexWrap: 'wrap',
+        padding: '24px 32px 52px',
+        borderTop: '1px solid rgba(255,255,255,0.05)',
+        background: 'rgba(4,8,16,0.5)',
+      }}>
         {DEPARTMENTS.map(f => (
           <button key={f} onClick={() => setFilter(f)} className={`filter-pill${filter === f ? ' active' : ''}`}>{f}</button>
         ))}
@@ -531,7 +536,7 @@ export default function Team() {
                 <h2 style={{ color: 'white', fontWeight: 800, fontSize: 18, letterSpacing: '-0.01em', margin: 0 }}>Core Leadership</h2>
               </div>
               <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, rgba(0,212,255,0.2), transparent)' }} />
-              <span style={{ fontFamily: "'Space Mono',monospace", fontSize: 9, color: 'rgba(0,212,255,0.5)', letterSpacing: '0.15em' }}>
+              <span style={{ fontFamily: "'Space Mono',monospace", fontSize: 11, color: 'rgba(0,212,255,0.55)', letterSpacing: '0.12em' }}>
                 {loading ? '—' : `${leadership.length} MEMBERS`}
               </span>
             </div>
@@ -567,7 +572,7 @@ export default function Team() {
                 </h2>
               </div>
               <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, rgba(123,92,255,0.2), transparent)' }} />
-              <span style={{ fontFamily: "'Space Mono',monospace", fontSize: 9, color: 'rgba(123,92,255,0.5)', letterSpacing: '0.15em' }}>
+              <span style={{ fontFamily: "'Space Mono',monospace", fontSize: 11, color: 'rgba(123,92,255,0.55)', letterSpacing: '0.12em' }}>
                 {loading ? '—' : `${filteredOC.length} MEMBERS`}
               </span>
             </div>
