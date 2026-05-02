@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../../utils/supabase'
 import { useAuth } from '../../context/AuthContext'
@@ -13,7 +13,23 @@ const CATEGORY_OPTIONS = [
   { label: 'Other', value: 'other' },
 ]
 
-const EMPTY_POST = {
+interface BlogPost {
+  id?: string
+  title: string
+  slug: string
+  content: string
+  cover_image_url: string
+  category: string
+  tags?: string[]
+  tagsText: string
+  status: string
+  is_featured: boolean
+  published_at: string | null
+  author_id?: string
+  created_at?: string
+}
+
+const EMPTY_POST: BlogPost = {
   title: '',
   slug: '',
   content: '',
@@ -30,15 +46,15 @@ export default function WriteBlog() {
   const navigate = useNavigate()
   const { profile, isExecutive, loading: authLoading } = useAuth()
   
-  const [posts, setPosts] = useState([])
+  const [posts, setPosts] = useState<BlogPost[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [saving, setSaving] = useState(false)
   const [coverUploading, setCoverUploading] = useState(false)
   const [error, setError] = useState('')
-  const [editId, setEditId] = useState(null)
+  const [editId, setEditId] = useState<string | null>(null)
   const [slugTouched, setSlugTouched] = useState(false)
-  const [form, setForm] = useState(EMPTY_POST)
+  const [form, setForm] = useState<BlogPost>(EMPTY_POST)
 
   useEffect(() => {
     if (!authLoading && profile) {
@@ -51,18 +67,20 @@ export default function WriteBlog() {
   }, [profile, authLoading, id])
 
   async function fetchMyPosts() {
+    if (!profile) return
     setLoading(true)
     const { data } = await supabase
       .from('blog_posts')
       .select('*')
       .eq('author_id', profile.id)
       .order('created_at', { ascending: false })
-    setPosts(data || [])
+    setPosts((data as unknown as BlogPost[]) || [])
     setLoading(false)
     setShowForm(false)
   }
 
-  async function fetchPostForEdit(postId) {
+  async function fetchPostForEdit(postId: string) {
+    if (!profile) return
     setLoading(true)
     const { data, error } = await supabase
       .from('blog_posts')
@@ -99,7 +117,7 @@ export default function WriteBlog() {
     setLoading(false)
   }
 
-  function computeReadMins(content) {
+  function computeReadMins(content: string) {
     const text = (content || '').trim()
     if (!text) return 1
     const words = text.split(/\s+/).filter(Boolean).length
@@ -108,6 +126,7 @@ export default function WriteBlog() {
   }
 
   const handleSave = async () => {
+    if (!profile) return
     setError('')
     const title = form.title.trim()
     const slug = form.slug.trim()
@@ -156,14 +175,14 @@ export default function WriteBlog() {
       } else {
         fetchMyPosts()
       }
-    } catch (err) {
+    } catch (err: any) {
       setError(err?.message || 'Failed to save post.')
     } finally {
       setSaving(false)
     }
   }
 
-  async function handleDelete(postId) {
+  async function handleDelete(postId: string) {
     if (!confirm('Delete this blog post?')) return
     const { error } = await supabase.from('blog_posts').delete().eq('id', postId)
     if (!error) fetchMyPosts()
@@ -285,7 +304,7 @@ export default function WriteBlog() {
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                  {['Title', 'Category', 'Status', 'Date', 'Actions'].map(h => (
+                  {(['Title', 'Category', 'Status', 'Date', 'Actions'] as const).map(h => (
                     <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>{h}</th>
                   ))}
                 </tr>
@@ -304,12 +323,12 @@ export default function WriteBlog() {
                       <span style={{ fontSize: 10, fontWeight: 700, color: post.status === 'published' ? 'var(--cyan)' : 'var(--text-muted)' }}>{post.status.toUpperCase()}</span>
                     </td>
                     <td style={{ padding: '14px 16px', color: 'var(--text-muted)', fontSize: 12 }}>
-                      {formatDateTime(post.created_at)}
+                      {post.created_at ? formatDateTime(post.created_at) : 'N/A'}
                     </td>
                     <td style={{ padding: '14px 16px' }}>
                       <div style={{ display: 'flex', gap: 8 }}>
-                        <button onClick={() => { setEditId(post.id); startEdit(post) }} style={BS}>Edit</button>
-                        <button onClick={() => handleDelete(post.id)} style={{ ...BS, color: '#EF4444' }}>Delete</button>
+                        <button onClick={() => { setEditId(post.id || null); startEdit(post) }} style={BS}>Edit</button>
+                        <button onClick={() => post.id && handleDelete(post.id)} style={{ ...BS, color: '#EF4444' }}>Delete</button>
                       </div>
                     </td>
                   </tr>
@@ -322,7 +341,7 @@ export default function WriteBlog() {
     </div>
   )
 
-  function startEdit(post) {
+  function startEdit(post: BlogPost) {
     setForm({
       title: post.title,
       slug: post.slug,
@@ -341,7 +360,15 @@ export default function WriteBlog() {
 
 /* ── Sub-components & Styles ─────────────────────────────────── */
 
-function FormField({ label, value, onChange, type = 'text', placeholder = '' }) {
+interface FormFieldProps {
+  label: string
+  value: string
+  onChange: (v: string) => void
+  type?: string
+  placeholder?: string
+}
+
+function FormField({ label, value, onChange, type = 'text', placeholder = '' }: FormFieldProps) {
   return (
     <div>
       <label style={LS}>{label}</label>
@@ -350,13 +377,19 @@ function FormField({ label, value, onChange, type = 'text', placeholder = '' }) 
   )
 }
 
-function BannerUpload({ value, onChange, onUploadingChange }) {
-  const fileRef = useRef(null)
+interface BannerUploadProps {
+  value: string
+  onChange: (url: string) => void
+  onUploadingChange: (u: boolean) => void
+}
+
+function BannerUpload({ value, onChange, onUploadingChange }: BannerUploadProps) {
+  const fileRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState('')
 
-  async function handleFile(e) {
-    const file = e.target.files[0]
+  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
     if (!file) return
     setUploading(true); onUploadingChange(true)
     try {
@@ -381,7 +414,7 @@ function BannerUpload({ value, onChange, onUploadingChange }) {
   return (
     <div>
       <label style={LS}>Cover Image</label>
-      <div style={{ border: '1px dashed var(--border)', borderRadius: 12, padding: 20, textAlign: 'center', cursor: 'pointer' }} onClick={() => fileRef.current.click()}>
+      <div style={{ border: '1px dashed var(--border)', borderRadius: 12, padding: 20, textAlign: 'center', cursor: 'pointer' }} onClick={() => fileRef.current?.click()}>
         {value ? (
           <img src={value} style={{ height: 120, borderRadius: 8, marginBottom: 10 }} alt="Preview" />
         ) : (
@@ -394,7 +427,7 @@ function BannerUpload({ value, onChange, onUploadingChange }) {
   )
 }
 
-const LS = { display: 'block', color: 'var(--text-muted)', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', marginBottom: 6 }
-const IS = { width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', borderRadius: 8, padding: '10px 12px', color: '#fff', fontSize: 13, outline: 'none' }
-const SS = { ...IS, cursor: 'pointer' }
-const BS = { padding: '4px 10px', borderRadius: 6, background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', color: 'var(--text-muted)', fontSize: 11, cursor: 'pointer' }
+const LS: React.CSSProperties = { display: 'block', color: 'var(--text-muted)', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', marginBottom: 6 }
+const IS: React.CSSProperties = { width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', borderRadius: 8, padding: '10px 12px', color: '#fff', fontSize: 13, outline: 'none' }
+const SS: React.CSSProperties = { ...IS, cursor: 'pointer' }
+const BS: React.CSSProperties = { padding: '4px 10px', borderRadius: 6, background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', color: 'var(--text-muted)', fontSize: 11, cursor: 'pointer' }

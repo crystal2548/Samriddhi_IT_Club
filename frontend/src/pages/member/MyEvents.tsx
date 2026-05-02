@@ -5,14 +5,35 @@ import { supabase } from '../../utils/supabase'
 import { useAuth } from '../../context/AuthContext'
 import { formatDateTime } from '../../utils/formatters'
 
+interface Event {
+  id: string
+  title: string
+  type: string
+  description: string
+  event_date: string
+  location: string
+  status: string
+  banner_url: string
+  max_participants: number
+}
+
+interface Registration {
+  id: string
+  member_id: string
+  event_id: string
+  registered_at: string
+  events: Event
+}
+
 export default function MyEvents() {
   const { user } = useAuth()
   const [filter, setFilter] = useState('all')
-  const [unregistering, setUnregistering] = useState(null)
+  const [unregistering, setUnregistering] = useState<string | null>(null)
   const queryClient = useQueryClient()
-  const { data: registrations = [], isLoading: loading } = useQuery({
+  const { data: registrations = [], isLoading: loading } = useQuery<Registration[]>({
     queryKey: ['my-events', user?.id],
     queryFn: async () => {
+      if (!user?.id) return []
       const { data, error } = await supabase
         .from('event_registrations')
         .select('*, events(id, title, type, description, event_date, location, status, banner_url, max_participants)')
@@ -20,12 +41,12 @@ export default function MyEvents() {
         .order('registered_at', { ascending: false })
       
       if (error) throw error
-      return data || []
+      return (data as unknown as Registration[]) || []
     },
     enabled: !!user?.id
   })
 
-  async function handleUnregister(regId, eventTitle) {
+  async function handleUnregister(regId: string, eventTitle: string) {
     if (!confirm(`Unregister from "${eventTitle}"?`)) return
     setUnregistering(regId)
     await supabase.from('event_registrations').delete().eq('id', regId)
@@ -40,7 +61,7 @@ export default function MyEvents() {
     return true
   })
 
-  const TYPE_COLOR = {
+  const TYPE_COLOR: Record<string, string> = {
     hackathon: 'var(--cyan)',
     workshop:  'var(--pink)',
     seminar:   '#00BFA5',
@@ -49,7 +70,7 @@ export default function MyEvents() {
     fest:      'var(--pink)',
   }
 
-  const STATUS_CONFIG = {
+  const STATUS_CONFIG: Record<string, { label: string, bg: string, color: string, border: string }> = {
     upcoming:  { label: 'Upcoming',  bg: 'rgba(16,185,129,0.1)',  color: '#10B981', border: 'rgba(16,185,129,0.25)' },
     ongoing:   { label: 'Ongoing',   bg: 'rgba(245,158,11,0.1)', color: '#F59E0B', border: 'rgba(245,158,11,0.25)' },
     completed: { label: 'Completed', bg: 'rgba(107,114,128,0.15)', color: '#9CA3AF', border: 'rgba(107,114,128,0.25)' },
@@ -172,10 +193,7 @@ export default function MyEvents() {
                       </span>
                     </div>
                     <Link to={`/events/${event.id}`} style={{ textDecoration: 'none' }}>
-                      <h3 style={{ color: '#fff', fontSize: 14, fontWeight: 600, marginBottom: 5, transition: 'color 0.15s' }}
-                        onMouseEnter={e => e.currentTarget.style.color = 'var(--cyan)'}
-                        onMouseLeave={e => e.currentTarget.style.color = '#fff'}
-                      >
+                      <h3 style={{ color: '#fff', fontSize: 14, fontWeight: 600, marginBottom: 5 }}>
                         {event.title}
                       </h3>
                     </Link>

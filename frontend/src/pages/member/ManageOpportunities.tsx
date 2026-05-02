@@ -1,19 +1,31 @@
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { supabase } from '../../utils/supabase'
 import { useAuth } from '../../context/AuthContext'
 import { formatDateShort } from '../../utils/formatters'
 
-const EMPTY_OPPORTUNITY = {
+interface Opportunity {
+  id?: string
+  title: string
+  type: string
+  description: string
+  link: string
+  deadline: string
+  is_active: boolean
+  posted_by?: string
+  created_at?: string
+}
+
+const EMPTY_OPPORTUNITY: Opportunity = {
   title: '', type: 'Internship', description: '', link: '', deadline: '', is_active: true
 }
 
 export default function ManageOpportunities() {
   const { profile, isExecutive, loading: authLoading } = useAuth()
-  const [opportunities, setOpportunities] = useState([])
+  const [opportunities, setOpportunities] = useState<Opportunity[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
-  const [form, setForm] = useState(EMPTY_OPPORTUNITY)
-  const [editId, setEditId] = useState(null)
+  const [form, setForm] = useState<Opportunity>(EMPTY_OPPORTUNITY)
+  const [editId, setEditId] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
@@ -24,13 +36,14 @@ export default function ManageOpportunities() {
   }, [profile, authLoading])
 
   async function fetchMyOpportunities() {
+    if (!profile) return
     setLoading(true)
     const { data } = await supabase
       .from('opportunities')
       .select('*')
       .eq('posted_by', profile.id)
       .order('created_at', { ascending: false })
-    setOpportunities(data || [])
+    setOpportunities((data as unknown as Opportunity[]) || [])
     setLoading(false)
   }
 
@@ -48,17 +61,17 @@ export default function ManageOpportunities() {
       } else {
         const { data, error: err } = await supabase.from('opportunities').insert(payload).select().single()
         if (err) throw err
-        if (data) setOpportunities(prev => [data, ...prev])
+        if (data) setOpportunities(prev => [data as unknown as Opportunity, ...prev])
       }
       setShowForm(false); setEditId(null); setForm(EMPTY_OPPORTUNITY)
-    } catch (err) {
+    } catch (err: any) {
       setError(`Failed to save: ${err.message}`)
     } finally {
       setSaving(false)
     }
   }
 
-  async function handleDelete(id) {
+  async function handleDelete(id: string) {
     if (!confirm('Delete this opportunity?')) return
     const { error: err } = await supabase.from('opportunities').delete().eq('id', id)
     if (!err) setOpportunities(prev => prev.filter(o => o.id !== id))
@@ -152,7 +165,7 @@ export default function ManageOpportunities() {
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                {['Title', 'Type', 'Deadline', 'Status', 'Actions'].map(h => <th key={h} style={TH}>{h}</th>)}
+                {(['Title', 'Type', 'Deadline', 'Status', 'Actions'] as const).map(h => <th key={h} style={TH}>{h}</th>)}
               </tr>
             </thead>
             <tbody>
@@ -166,8 +179,8 @@ export default function ManageOpportunities() {
                   </td>
                   <td style={TD}>
                     <div style={{ display: 'flex', gap: 8 }}>
-                      <button onClick={() => { setForm(o); setEditId(o.id); setShowForm(true) }} style={BS_ACT}>Edit</button>
-                      <button onClick={() => handleDelete(o.id)} style={{ ...BS_ACT, color: '#EF4444' }}>Delete</button>
+                      <button onClick={() => { setForm(o); setEditId(o.id || null); setShowForm(true) }} style={BS_ACT}>Edit</button>
+                      <button onClick={() => o.id && handleDelete(o.id)} style={{ ...BS_ACT, color: '#EF4444' }}>Delete</button>
                     </div>
                   </td>
                 </tr>
@@ -180,7 +193,14 @@ export default function ManageOpportunities() {
   )
 }
 
-function FormField({ label, value, onChange, placeholder = '' }) {
+interface FormFieldProps {
+  label: string
+  value: string
+  onChange: (v: string) => void
+  placeholder?: string
+}
+
+function FormField({ label, value, onChange, placeholder = '' }: FormFieldProps) {
   return (
     <div>
       <label style={LS}>{label}</label>
@@ -189,13 +209,13 @@ function FormField({ label, value, onChange, placeholder = '' }) {
   )
 }
 
-const LS = { display: 'block', color: 'var(--text-muted)', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }
-const IS = { width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', borderRadius: 8, padding: '9px 12px', color: '#fff', fontSize: 13, outline: 'none' }
-const SS = { ...IS, cursor: 'pointer' }
-const TS = { ...IS, resize: 'vertical', fontFamily: 'Inter, sans-serif' }
-const TH = { padding: '12px 16px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }
-const TD = { padding: '12px 16px', fontSize: 13, color: 'var(--text-secondary)' }
-const TAG = { fontSize: 10, padding: '2px 6px', borderRadius: 4, background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', color: 'var(--pink)' }
-const BS_PRI = { padding: '10px 24px', background: 'var(--cyan)', border: 'none', borderRadius: 8, color: '#0A0E1A', fontSize: 13, fontWeight: 700, cursor: 'pointer' }
-const BS_SEC = { padding: '10px 20px', background: 'transparent', border: '1px solid var(--border)', borderRadius: 8, color: 'var(--text-muted)', fontSize: 13, cursor: 'pointer' }
-const BS_ACT = { padding: '4px 10px', borderRadius: 6, background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', color: 'var(--text-muted)', fontSize: 11, cursor: 'pointer' }
+const LS: React.CSSProperties = { display: 'block', color: 'var(--text-muted)', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }
+const IS: React.CSSProperties = { width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', borderRadius: 8, padding: '9px 12px', color: '#fff', fontSize: 13, outline: 'none' }
+const SS: React.CSSProperties = { ...IS, cursor: 'pointer' }
+const TS: React.CSSProperties = { ...IS, resize: 'vertical' as const, fontFamily: 'Inter, sans-serif' }
+const TH: React.CSSProperties = { padding: '12px 16px', textAlign: 'left' as const, fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }
+const TD: React.CSSProperties = { padding: '12px 16px', fontSize: 13, color: 'var(--text-secondary)' }
+const TAG: React.CSSProperties = { fontSize: 10, padding: '2px 6px', borderRadius: 4, background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', color: 'var(--pink)' }
+const BS_PRI: React.CSSProperties = { padding: '10px 24px', background: 'var(--cyan)', border: 'none', borderRadius: 8, color: '#0A0E1A', fontSize: 13, fontWeight: 700, cursor: 'pointer' }
+const BS_SEC: React.CSSProperties = { padding: '10px 20px', background: 'transparent', border: '1px solid var(--border)', borderRadius: 8, color: 'var(--text-muted)', fontSize: 13, cursor: 'pointer' }
+const BS_ACT: React.CSSProperties = { padding: '4px 10px', borderRadius: 6, background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', color: 'var(--text-muted)', fontSize: 11, cursor: 'pointer' }

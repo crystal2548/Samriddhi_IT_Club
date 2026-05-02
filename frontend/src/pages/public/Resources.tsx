@@ -5,8 +5,8 @@ import ResourceCard from '../../components/shared/ResourceCard'
 import OpportunityItem from '../../components/shared/OpportunityItem'
 
 export default function Resources() {
-  const [resources, setResources] = useState([])
-  const [opportunities, setOpportunities] = useState([])
+  const [resources, setResources] = useState<any[]>([])
+  const [opportunities, setOpportunities] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [activeTrack, setActiveTrack] = useState('All')
@@ -184,7 +184,7 @@ export default function Resources() {
   )
 }
 
-function PathCard({ title, desc, steps, color }) {
+function PathCard({ title, desc, steps, color }: { title: string, desc: string, steps: string[], color: string }) {
   return (
     <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 16, padding: 24, transition: 'all 0.2s' }}
       onMouseEnter={e => e.currentTarget.style.borderColor = color}

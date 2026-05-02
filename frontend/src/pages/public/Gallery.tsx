@@ -3,9 +3,9 @@ import { supabase } from '../../utils/supabase'
 import { formatDateTime } from '../../utils/formatters'
 
 export default function Gallery() {
-  const [images, setImages] = useState([])
+  const [images, setImages] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const [selectedImage, setSelectedImage] = useState(null)
+  const [selectedImage, setSelectedImage] = useState<any>(null)
   const [error, setError] = useState('')
 
   useEffect(() => {

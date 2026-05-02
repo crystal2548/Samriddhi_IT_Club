@@ -1,3 +1,4 @@
+import React from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { supabase } from '../../utils/supabase'
@@ -12,6 +13,7 @@ export default function Dashboard() {
   const { data: { registrations = [], notices = [] } = {}, isLoading: loading } = useQuery({
     queryKey: ['dashboard', user?.id],
     queryFn: async () => {
+      if (!user?.id) return { registrations: [], notices: [] }
       const [regsRes, noticesRes] = await Promise.all([
         supabase
           .from('event_registrations')
@@ -34,21 +36,18 @@ export default function Dashboard() {
     enabled: !!user?.id
   })
 
-  async function handleUnregister(registrationId) {
+  async function handleUnregister(registrationId: string) {
     if (!confirm('Are you sure you want to unregister?')) return
     await supabase.from('event_registrations').delete().eq('id', registrationId)
-    queryClient.invalidateQueries(['dashboard', user?.id])
+    queryClient.invalidateQueries({ queryKey: ['dashboard', user?.id] })
   }
 
-  const upcoming = registrations.filter(r => ['upcoming', 'ongoing'].includes(r.events?.status))
-  const past = registrations.filter(r => r.events?.status === 'completed')
+  const upcoming = registrations.filter((r: any) => ['upcoming', 'ongoing'].includes(r.events?.status))
 
-  const TYPE_COLOR = {
+  const TYPE_COLOR: Record<string, string> = {
     hackathon: 'var(--cyan)', workshop: 'var(--pink)',
     seminar: '#00BFA5', bootcamp: '#A78BFA', social: '#F59E0B',
   }
-
-
 
   return (
     <div style={{ maxWidth: 960 }}>
@@ -109,7 +108,7 @@ export default function Dashboard() {
             />
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {upcoming.slice(0, 4).map(reg => (
+              {upcoming.slice(0, 4).map((reg: any) => (
                 <div key={reg.id} style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 10, padding: '12px 14px', display: 'flex', gap: 12, alignItems: 'flex-start' }}>
                   {/* Type dot */}
                   <div style={{ width: 8, height: 8, borderRadius: '50%', background: TYPE_COLOR[reg.events?.type] || 'var(--cyan)', marginTop: 4, flexShrink: 0 }}/>
@@ -149,7 +148,7 @@ export default function Dashboard() {
             <EmptyCard message="No notices yet" sub="Announcements from the OC will appear here." />
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {notices.map(notice => (
+              {notices.map((notice: any) => (
                 <div key={notice.id} style={{ background: 'var(--bg-card)', border: `1px solid ${notice.is_pinned ? 'rgba(0,212,255,0.2)' : 'var(--border)'}`, borderRadius: 10, padding: '12px 14px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                     {notice.is_pinned && (
@@ -191,7 +190,15 @@ export default function Dashboard() {
 }
 
 /* ── Stat Card ───────────────────────────────────────────────── */
-function StatCard({ label, value, color, icon, mono = false }) {
+interface StatCardProps {
+  label: string
+  value: string | number
+  color: string
+  icon: React.ReactNode
+  mono?: boolean
+}
+
+function StatCard({ label, value, color, icon, mono = false }: StatCardProps) {
   return (
     <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, padding: '18px 20px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
@@ -206,7 +213,14 @@ function StatCard({ label, value, color, icon, mono = false }) {
 }
 
 /* ── Empty Card ──────────────────────────────────────────────── */
-function EmptyCard({ message, sub, linkTo, linkLabel }) {
+interface EmptyCardProps {
+  message: string
+  sub: string
+  linkTo?: string
+  linkLabel?: string
+}
+
+function EmptyCard({ message, sub, linkTo, linkLabel }: EmptyCardProps) {
   return (
     <div style={{ background: 'var(--bg-card)', border: '1px dashed var(--border)', borderRadius: 10, padding: '28px 20px', textAlign: 'center' }}>
       <p style={{ color: 'var(--text-secondary)', fontSize: 13, fontWeight: 500, marginBottom: 4 }}>{message}</p>

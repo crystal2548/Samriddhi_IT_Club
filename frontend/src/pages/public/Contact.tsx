@@ -29,19 +29,19 @@ const SS: React.CSSProperties = { ...IS, cursor: 'pointer' }
 const TS: React.CSSProperties = { ...IS, resize: 'vertical' }
 
 // ─── ContactItem ──────────────────────────────────────────────────────────
-function ContactItem({ icon, label, value }: { icon: string; label: string; value: string }) {
+function ContactItem({ icon, label, value, color = '#00D4FF' }: { icon: React.ReactNode; label: string; value: string; color?: string }) {
   return (
     <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
       <div style={{
-        width: 44, height: 44, borderRadius: 12, flexShrink: 0,
-        background: 'rgba(0,212,255,0.06)', border: '1px solid rgba(0,212,255,0.1)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20,
+        width: 48, height: 48, borderRadius: 12, flexShrink: 0,
+        background: `${color}08`, border: `1px solid ${color}15`,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>
         {icon}
       </div>
       <div>
-        <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 2 }}>{label}</p>
-        <p style={{ color: '#fff', fontSize: 14, fontWeight: 500 }}>{value}</p>
+        <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 3 }}>{label}</p>
+        <p style={{ color: '#fff', fontSize: 14, fontWeight: 600 }}>{value}</p>
       </div>
     </div>
   )
@@ -88,10 +88,10 @@ export default function Contact() {
   }
 
   const SOCIALS = [
-    { name: 'Instagram', icon: '📸', url: '#', color: '#E1306C' },
-    { name: 'LinkedIn',  icon: '🔗', url: '#', color: '#0077B5' },
-    { name: 'Facebook',  icon: '👥', url: '#', color: '#1877F2' },
-    { name: 'GitHub',    icon: '💻', url: '#', color: '#fff'    },
+    { name: 'Instagram', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>, url: '#', color: '#E1306C' },
+    { name: 'LinkedIn',  icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>, url: '#', color: '#0077B5' },
+    { name: 'Facebook',  icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>, url: '#', color: '#1877F2' },
+    { name: 'GitHub',    icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>, url: '#', color: '#fff'    },
   ]
 
   return (
@@ -150,9 +150,23 @@ export default function Contact() {
               <h3 style={{ color: '#fff', fontSize: 18, fontWeight: 700, marginTop: 0, marginBottom: 24 }}>Connect With Us</h3>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-                <ContactItem icon="📧" label="Email"    value="samriddhi.it.club@gmail.com"     />
-                <ContactItem icon="📍" label="Location" value="Samriddhi College, Bhaktapur, Nepal" />
-                <ContactItem icon="📞" label="Phone"    value="+977 98XXXXXXX"                  />
+                <ContactItem 
+                  icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00D4FF" strokeWidth="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>} 
+                  label="Email" 
+                  value="samriddhi.it.club@gmail.com" 
+                />
+                <ContactItem 
+                  icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FF2D9B" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>} 
+                  label="Location" 
+                  value="Samriddhi College, Bhaktapur, Nepal" 
+                  color="#FF2D9B"
+                />
+                <ContactItem 
+                  icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#A78BFA" strokeWidth="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.81 12.81 0 0 0 .62 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.62A2 2 0 0 1 22 19.23z"/></svg>} 
+                  label="Phone" 
+                  value="+977 98XXXXXXX" 
+                  color="#A78BFA"
+                />
               </div>
 
               <div style={{ marginTop: 32, paddingTop: 28, borderTop: '1px solid rgba(255,255,255,0.08)' }}>

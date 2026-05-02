@@ -1,14 +1,25 @@
-import { useEffect, useState, useRef, useCallback } from 'react'
+import React, { useEffect, useState, useRef, useCallback } from 'react'
 import { supabase } from '../../utils/supabase'
 import { useAuth } from '../../context/AuthContext'
 
+interface GalleryImage {
+  id: string
+  image_url: string
+  caption: string
+  uploaded_by: string
+  created_at: string
+  profiles?: {
+    full_name: string
+  }
+}
+
 export default function Gallery() {
   const { profile, isExecutive, loading: authLoading } = useAuth()
-  const [images, setImages] = useState([])
+  const [images, setImages] = useState<GalleryImage[]>([])
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState('')
-  const fileRef = useRef(null)
+  const fileRef = useRef<HTMLInputElement>(null)
 
   const fetchGallery = useCallback(async () => {
     setLoading(true)
@@ -19,29 +30,27 @@ export default function Gallery() {
     
     if (error) {
       console.error('Error fetching gallery:', error)
-      // If table doesn't exist, show a helpful message
       if (error.code === '42P01') {
         setError("The 'event_gallery' table does not exist in Supabase yet. Please create it to use this feature.")
       }
     } else {
-      setImages(data || [])
+      setImages((data as unknown as GalleryImage[]) || [])
     }
     setLoading(false)
-  }, []) // Empty dependency array as it relies on stable setters
+  }, [])
 
   useEffect(() => {
     fetchGallery()
   }, [fetchGallery])
 
-  async function handleUpload(e) {
-    const file = e.target.files[0]
-    if (!file) return
+  async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file || !profile) return
     if (file.size > 10 * 1024 * 1024) return alert('Image must be under 10MB')
 
     setUploading(true)
     setError('')
     try {
-      // Logic for signed upload to Cloudinary via backend
       const apiBase = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
       const signRes = await fetch(`${apiBase}/api/upload/sign`, { method: 'POST' })
       const { signature, timestamp, api_key, cloud_name } = await signRes.json()
@@ -72,7 +81,7 @@ export default function Gallery() {
     }
   }
 
-  async function handleDelete(id) {
+  async function handleDelete(id: string) {
     if (!confirm('Remove this image from gallery?')) return
     const { error } = await supabase.from('event_gallery').delete().eq('id', id)
     if (!error) fetchGallery()
@@ -129,7 +138,7 @@ export default function Gallery() {
                 <p className="font-semibold overflow-hidden text-ellipsis whitespace-nowrap">{img.caption}</p>
                 <p className="opacity-70">By {img.profiles?.full_name || 'Member'}</p>
               </div>
-              {(isExecutive || img.uploaded_by === profile.id) && (
+              {(isExecutive || (profile && img.uploaded_by === profile.id)) && (
                 <button 
                   onClick={(e) => { e.stopPropagation(); handleDelete(img.id) }}
                   className="absolute top-2 right-2 w-6 h-6 rounded-full bg-red-500/80 border-none text-white cursor-pointer flex items-center justify-center text-sm opacity-0 group-hover:opacity-100 transition-opacity">

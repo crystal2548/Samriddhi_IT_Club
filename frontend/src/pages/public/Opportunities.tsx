@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../../utils/supabase'
-import OpportunityItem from '../../components/shared/OpportunityItem'
 import { formatDateShort } from '../../utils/formatters'
 
 export default function Opportunities() {
-  const [opportunities, setOpportunities] = useState([])
+  const [opportunities, setOpportunities] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all')
 

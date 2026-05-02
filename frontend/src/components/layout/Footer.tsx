@@ -88,10 +88,10 @@ export default function Footer() {
       <div style={{ position: 'absolute', bottom: -60, left: -60, width: 280, height: 280, borderRadius: '50%', background: 'rgba(0,212,255,0.04)', filter: 'blur(80px)', pointerEvents: 'none', animation: 'footerGlow 5s ease infinite' }} />
       <div style={{ position: 'absolute', bottom: -60, right: '25%', width: 200, height: 200, borderRadius: '50%', background: 'rgba(255,45,155,0.03)', filter: 'blur(80px)', pointerEvents: 'none', animation: 'footerGlow 7s ease infinite 1s' }} />
 
-      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '52px 32px 0', position: 'relative', zIndex: 1 }}>
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '40px 32px 0', position: 'relative', zIndex: 1 }}>
 
         {/* ── Main grid ──────────────────────────────────── */}
-        <div className="footer-grid" style={{ display: 'grid', gridTemplateColumns: '1.8fr 1fr 1fr 1fr', gap: '48px 32px', marginBottom: 48 }}>
+        <div className="footer-grid" style={{ display: 'grid', gridTemplateColumns: '1.8fr 1fr 1fr 1fr', gap: '48px 32px', marginBottom: 32 }}>
 
           {/* Brand column */}
           <div className="footer-brand" style={{ display: 'flex', flexDirection: 'column' }}>
@@ -201,7 +201,7 @@ export default function Footer() {
         {/* ── Bottom bar ─────────────────────────────────── */}
         <div style={{
           borderTop: '1px solid rgba(255,255,255,0.05)',
-          padding: '18px 0 22px',
+          padding: '14px 0 18px',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           flexWrap: 'wrap', gap: 12,
         }}>
@@ -209,15 +209,8 @@ export default function Footer() {
             © {year} {settings.club_name || 'Samriddhi IT Club'}. All rights reserved.
           </p>
 
-          {/* Center: nav pills */}
-          <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', justifyContent: 'center' }}>
-            {['Privacy', 'Terms', 'Contact'].map(l => (
-              <Link key={l} to={`/${l.toLowerCase()}`} className="footer-link" style={{ fontSize: 11 }}>{l}</Link>
-            ))}
-          </div>
-
           <p style={{ color: 'rgba(255,255,255,0.2)', fontSize: 11, fontFamily: "'Space Mono', monospace", margin: 0 }}>
-            Built with <span style={{ color: '#FF2D9B' }}>♥</span> by {(settings.club_name || 'Samriddhi').split(' ')[0]}
+            Build by <span style={{ color: '#00D4FF' }}>Crystal Karki</span>
           </p>
         </div>
       </div>

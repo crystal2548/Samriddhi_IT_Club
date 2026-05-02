@@ -1,9 +1,23 @@
-import { useEffect, useState, useRef } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { supabase } from '../../utils/supabase'
 import { useAuth } from '../../context/AuthContext'
 import { formatDateShort } from '../../utils/formatters'
 
-const EMPTY_PROJECT = {
+interface Project {
+  id?: string
+  title: string
+  description: string
+  banner_url: string
+  tech_stack: string | string[]
+  github_url: string
+  demo_url: string
+  is_featured: boolean
+  category: string
+  added_by?: string
+  created_at?: string
+}
+
+const EMPTY_PROJECT: Project = {
   title: '', description: '', banner_url: '',
   tech_stack: '', github_url: '', demo_url: '',
   is_featured: false, category: 'Web Development'
@@ -11,11 +25,11 @@ const EMPTY_PROJECT = {
 
 export default function ManageProjects() {
   const { profile, isExecutive, loading: authLoading } = useAuth()
-  const [projects, setProjects] = useState([])
+  const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
-  const [form, setForm] = useState(EMPTY_PROJECT)
-  const [editId, setEditId] = useState(null)
+  const [form, setForm] = useState<Project>(EMPTY_PROJECT)
+  const [editId, setEditId] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
@@ -26,13 +40,14 @@ export default function ManageProjects() {
   }, [profile, authLoading])
 
   async function fetchMyProjects() {
+    if (!profile) return
     setLoading(true)
     const { data } = await supabase
       .from('projects')
       .select('*')
       .eq('added_by', profile.id)
       .order('created_at', { ascending: false })
-    setProjects(data || [])
+    setProjects((data as unknown as Project[]) || [])
     setLoading(false)
   }
 
@@ -59,17 +74,17 @@ export default function ManageProjects() {
       } else {
         const { data, error: err } = await supabase.from('projects').insert(payload).select().single()
         if (err) throw err
-        if (data) setProjects(prev => [data, ...prev])
+        if (data) setProjects(prev => [data as unknown as Project, ...prev])
       }
       setShowForm(false); setEditId(null); setForm(EMPTY_PROJECT)
-    } catch (err) {
+    } catch (err: any) {
       setError(`Failed to save: ${err.message}`)
     } finally {
       setSaving(false)
     }
   }
 
-  async function handleDelete(id) {
+  async function handleDelete(id: string) {
     if (!confirm('Delete this project?')) return
     const { error: err } = await supabase.from('projects').delete().eq('id', id)
     if (!err) setProjects(prev => prev.filter(p => p.id !== id))
@@ -118,7 +133,7 @@ export default function ManageProjects() {
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
             <FormField label="Title *" value={form.title} onChange={v => setForm(p => ({ ...p, title: v }))} />
-            <FormField label="Tech Stack (comma separated)" value={form.tech_stack} onChange={v => setForm(p => ({ ...p, tech_stack: v }))} placeholder="React, Supabase, Tailwind..." />
+            <FormField label="Tech Stack (comma separated)" value={form.tech_stack as string} onChange={v => setForm(p => ({ ...p, tech_stack: v }))} placeholder="React, Supabase, Tailwind..." />
             
             <FormField label="GitHub URL" value={form.github_url} onChange={v => setForm(p => ({ ...p, github_url: v }))} />
             <FormField label="Live Demo URL" value={form.demo_url} onChange={v => setForm(p => ({ ...p, demo_url: v }))} />
@@ -162,7 +177,7 @@ export default function ManageProjects() {
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                {['Project', 'Tech Stack', 'Created', 'Actions'].map(h => <th key={h} style={TH}>{h}</th>)}
+                {(['Project', 'Tech Stack', 'Created', 'Actions'] as const).map(h => <th key={h} style={TH}>{h}</th>)}
               </tr>
             </thead>
             <tbody>
@@ -180,16 +195,16 @@ export default function ManageProjects() {
                   </td>
                   <td style={TD}>
                     <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-                      {p.tech_stack?.slice(0, 3).map(t => (
+                      {(p.tech_stack as string[])?.slice(0, 3).map((t: string) => (
                         <span key={t} style={{ fontSize: 10, padding: '2px 6px', borderRadius: 4, background: 'rgba(0,212,255,0.06)', color: 'var(--cyan)', border: '1px solid rgba(0,212,255,0.1)' }}>{t}</span>
                       ))}
                     </div>
                   </td>
-                  <td style={TD}>{formatDateShort(p.created_at)}</td>
+                  <td style={TD}>{p.created_at ? formatDateShort(p.created_at) : 'N/A'}</td>
                   <td style={TD}>
                     <div style={{ display: 'flex', gap: 8 }}>
-                      <button onClick={() => { setForm({ ...p, tech_stack: p.tech_stack?.join(', ') || '' }); setEditId(p.id); setShowForm(true) }} style={BS_ACT}>Edit</button>
-                      <button onClick={() => handleDelete(p.id)} style={{ ...BS_ACT, color: '#EF4444' }}>Delete</button>
+                      <button onClick={() => { setForm({ ...p, tech_stack: (p.tech_stack as string[])?.join(', ') || '' }); setEditId(p.id || null); setShowForm(true) }} style={BS_ACT}>Edit</button>
+                      <button onClick={() => p.id && handleDelete(p.id)} style={{ ...BS_ACT, color: '#EF4444' }}>Delete</button>
                     </div>
                   </td>
                 </tr>
@@ -202,13 +217,18 @@ export default function ManageProjects() {
   )
 }
 
-function BannerUpload({ value, onChange }) {
-  const fileRef = useRef(null)
+interface BannerUploadProps {
+  value: string
+  onChange: (url: string) => void
+}
+
+function BannerUpload({ value, onChange }: BannerUploadProps) {
+  const fileRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState('')
 
-  async function handleFile(e) {
-    const file = e.target.files[0]
+  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
     if (!file) return
     setUploading(true); setError('')
     try {
@@ -233,7 +253,7 @@ function BannerUpload({ value, onChange }) {
   return (
     <div>
       <label style={LS}>Project Banner</label>
-      <div style={{ border: '1px dashed var(--border)', borderRadius: 12, padding: 20, textAlign: 'center', cursor: 'pointer' }} onClick={() => fileRef.current.click()}>
+      <div style={{ border: '1px dashed var(--border)', borderRadius: 12, padding: 20, textAlign: 'center', cursor: 'pointer' }} onClick={() => fileRef.current?.click()}>
         {value ? <img src={value} style={{ height: 100, borderRadius: 8 }} alt="" /> : <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>{uploading ? 'Uploading...' : '+ Upload Project Banner'}</p>}
         <input ref={fileRef} type="file" hidden onChange={handleFile} accept="image/*" />
       </div>
@@ -242,7 +262,14 @@ function BannerUpload({ value, onChange }) {
   )
 }
 
-function FormField({ label, value, onChange, placeholder = '' }) {
+interface FormFieldProps {
+  label: string
+  value: string
+  onChange: (v: string) => void
+  placeholder?: string
+}
+
+function FormField({ label, value, onChange, placeholder = '' }: FormFieldProps) {
   return (
     <div>
       <label style={LS}>{label}</label>
@@ -251,10 +278,10 @@ function FormField({ label, value, onChange, placeholder = '' }) {
   )
 }
 
-const LS = { display: 'block', color: 'var(--text-muted)', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', marginBottom: 8 }
-const IS = { width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', borderRadius: 8, padding: '9px 12px', color: '#fff', fontSize: 13, outline: 'none' }
-const TH = { padding: '12px 16px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }
-const TD = { padding: '12px 16px', fontSize: 13, color: 'var(--text-secondary)' }
-const BS_PRI = { padding: '10px 24px', background: 'var(--cyan)', border: 'none', borderRadius: 8, color: '#0A0E1A', fontSize: 13, fontWeight: 700, cursor: 'pointer' }
-const BS_SEC = { padding: '10px 20px', background: 'transparent', border: '1px solid var(--border)', borderRadius: 8, color: 'var(--text-muted)', fontSize: 13, cursor: 'pointer' }
-const BS_ACT = { padding: '4px 10px', borderRadius: 6, background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', color: 'var(--text-muted)', fontSize: 11, cursor: 'pointer' }
+const LS: React.CSSProperties = { display: 'block', color: 'var(--text-muted)', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', marginBottom: 8 }
+const IS: React.CSSProperties = { width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', borderRadius: 8, padding: '9px 12px', color: '#fff', fontSize: 13, outline: 'none' }
+const TH: React.CSSProperties = { padding: '12px 16px', textAlign: 'left' as const, fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }
+const TD: React.CSSProperties = { padding: '12px 16px', fontSize: 13, color: 'var(--text-secondary)' }
+const BS_PRI: React.CSSProperties = { padding: '10px 24px', background: 'var(--cyan)', border: 'none', borderRadius: 8, color: '#0A0E1A', fontSize: 13, fontWeight: 700, cursor: 'pointer' }
+const BS_SEC: React.CSSProperties = { padding: '10px 20px', background: 'transparent', border: '1px solid var(--border)', borderRadius: 8, color: 'var(--text-muted)', fontSize: 13, cursor: 'pointer' }
+const BS_ACT: React.CSSProperties = { padding: '4px 10px', borderRadius: 6, background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', color: 'var(--text-muted)', fontSize: 11, cursor: 'pointer' }

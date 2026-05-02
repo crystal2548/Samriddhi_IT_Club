@@ -18,7 +18,7 @@ export default function Home() {
     queryKey: ['home_data'],
     queryFn: async () => {
       const [eventsRes, projectsRes, postsRes, sponsorsRes] = await Promise.all([
-        supabase.from('events').select('*').in('status', ['upcoming', 'ongoing']).order('event_date', { ascending: true }).limit(3),
+        supabase.from('events').select('*').eq('is_featured', true).order('event_date', { ascending: true }).limit(3),
         supabase.from('projects').select('*').eq('is_featured', true).order('created_at', { ascending: false }).limit(3),
         supabase.from('blog_posts').select('id, title, slug, category, cover_image_url, read_time_mins, published_at, profiles(full_name)').eq('status', 'published').order('published_at', { ascending: false }).limit(3),
         supabase.from('sponsors').select('*').eq('is_active', true).order('tier'),
@@ -338,21 +338,92 @@ export default function Home() {
           flex-wrap: wrap;
         }
 
-        .avatar-stack { display: flex; }
+        .avatar-stack {
+          display: flex;
+          align-items: center;
+          position: relative;
+          padding: 10px;
+        }
+        .avatar-stack::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: radial-gradient(circle at center, rgba(0,212,255,0.15) 0%, transparent 70%);
+          filter: blur(20px);
+          opacity: 0;
+          transition: opacity 0.4s ease;
+          pointer-events: none;
+        }
+        .avatar-stack:hover::before { opacity: 1; }
+
         .avatar {
-          width: 40px; height: 40px;
-          border-radius: 50%;
-          border: 2px solid #040810;
+          width: 48px;
+          height: 48px;
+          border-radius: 14px;
+          border: 1px solid rgba(255,255,255,0.1);
+          background: rgba(255,255,255,0.03);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
           display: flex;
           align-items: center;
           justify-content: center;
-          font-size: 12px;
-          font-weight: 700;
-          color: white;
-          margin-left: -10px;
+          margin-left: -12px;
           position: relative;
+          transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+          box-shadow: 0 10px 30px rgba(0,0,0,0.3), inset 0 0 0 1px rgba(255,255,255,0.05);
+          cursor: pointer;
         }
         .avatar:first-child { margin-left: 0; }
+        .avatar-stack:hover .avatar {
+          margin-left: 10px;
+          transform: translateY(-5px) scale(1.1);
+          border-color: rgba(0,212,255,0.4);
+        }
+
+        .avatar-count {
+          background: rgba(255,255,255,0.08);
+          backdrop-filter: blur(8px);
+          color: #00D4FF;
+          font-family: 'Space Mono', monospace;
+          font-size: 11px;
+          border-color: rgba(0,212,255,0.2);
+          z-index: 0;
+          animation: pulse-border 2s infinite;
+        }
+
+        @keyframes pulse-border {
+          0%, 100% { border-color: rgba(0,212,255,0.2); box-shadow: 0 0 0 0 rgba(0,212,255,0); }
+          50% { border-color: rgba(0,212,255,0.5); box-shadow: 0 0 15px rgba(0,212,255,0.2); }
+        }
+
+        .dynamic-text {
+          font-size: 12px;
+          font-weight: 600;
+          color: rgba(255,255,255,0.4);
+          letter-spacing: 0.05em;
+          margin-top: 10px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+        .live-dot {
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background: #10B981;
+          position: relative;
+        }
+        .live-dot::after {
+          content: '';
+          position: absolute;
+          inset: -2px;
+          border-radius: 50%;
+          border: 1px solid #10B981;
+          animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+        }
+        @keyframes ping {
+          75%, 100% { transform: scale(2.5); opacity: 0; }
+        }
       `}</style>
 
       {/* ── HERO ──────────────────────────────────────────── */}
@@ -506,9 +577,9 @@ export default function Home() {
       {/* ── UPCOMING EVENTS ───────────────────────────────── */}
       <section style={{ padding: '80px 0', background: '#06090F' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 32px' }}>
-          <SectionHeader eyebrow="Engage with us" title="Upcoming Events" linkTo="/events" linkLabel="View All Events" />
+          <SectionHeader eyebrow="Curated for you" title="Featured Events" linkTo="/events" linkLabel="View All Events" />
           {loading ? <CardsSkeleton /> : events.length === 0
-            ? <EmptyState message="No upcoming events right now." sub="Check back soon or follow us on Instagram." />
+            ? <EmptyState message="No featured events right now." sub="Check back soon or follow us on Instagram." />
             : <div className="grid-3">{events.map((e: any) => <EventCard key={e.id} event={e} />)}</div>
           }
         </div>
@@ -559,21 +630,30 @@ export default function Home() {
                 </Link>
               </div>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               <div className="avatar-stack">
-                {['AK','PT','RS','BM','SJ'].map((ini, i) => (
+                {[
+                  { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00D4FF" strokeWidth="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>, glow: '#00D4FF' },
+                  { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FF2D9B" strokeWidth="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>, glow: '#FF2D9B' },
+                  { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7B5CFF" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>, glow: '#7B5CFF' },
+                  { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00FFCC" strokeWidth="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/></svg>, glow: '#00FFCC' },
+                  { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>, glow: '#F59E0B' },
+                ].map((av, i) => (
                   <div key={i} className="avatar" style={{
-                    zIndex: 5 - i,
-                    background: i % 2 === 0
-                      ? 'linear-gradient(135deg, #00D4FF, #0055FF)'
-                      : 'linear-gradient(135deg, #FF2D9B, #FF6B35)'
-                  }}>{ini}</div>
+                    zIndex: 10 - i,
+                    boxShadow: `0 10px 30px rgba(0,0,0,0.3), 0 0 20px ${av.glow}15`
+                  }}>
+                    {av.icon}
+                  </div>
                 ))}
-                <div className="avatar" style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.4)', fontSize: 10, zIndex: 0 }}>+115</div>
+                <div className="avatar avatar-count" style={{ borderRadius: 14 }}>
+                  <span style={{ fontSize: 13, fontWeight: 800 }}>+{parseInt(settings.stat_members || '120') - 5}</span>
+                </div>
               </div>
-              <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11, fontFamily: "'Space Mono', monospace" }}>
-                Join {settings.stat_members || '120+'} innovators
-              </span>
+              <div className="dynamic-text">
+                <span className="live-dot" />
+                Join {settings.stat_members || '120+'} innovators worldwide
+              </div>
             </div>
           </div>
         </div>
@@ -937,6 +1017,12 @@ function EventCard({ event }: { event: any }) {
               {event.location}
             </div>
           )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'rgba(255,255,255,0.55)', fontSize: 12, fontWeight: 500 }}>
+            <div style={{ width: 28, height: 28, borderRadius: 8, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={st.color} strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+            Status: <span style={{ color: st.color, fontWeight: 700 }}>{st.label}</span>
+          </div>
         </div>
 
         <button style={{

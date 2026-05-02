@@ -3,9 +3,18 @@ import { supabase } from '../../utils/supabase'
 import { useAuth } from '../../context/AuthContext'
 import { formatDate } from '../../utils/formatters'
 
+interface Notice {
+  id: string
+  title: string
+  body: string
+  audience: string
+  is_pinned: boolean
+  created_at: string
+}
+
 export default function Notices() {
   const { profile } = useAuth()
-  const [notices, setNotices] = useState([])
+  const [notices, setNotices] = useState<Notice[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all')
 
@@ -29,11 +38,11 @@ export default function Notices() {
       .order('is_pinned', { ascending: false })
       .order('created_at', { ascending: false })
 
-    setNotices(data || [])
+    setNotices((data as unknown as Notice[]) || [])
     setLoading(false)
   }
 
-  const AUDIENCE_COLORS = {
+  const AUDIENCE_COLORS: Record<string, { bg: string, color: string, border: string }> = {
     all:       { bg: 'rgba(0,212,255,0.08)',   color: 'var(--cyan)', border: 'rgba(0,212,255,0.2)' },
     general:   { bg: 'rgba(16,185,129,0.08)',  color: '#10B981',     border: 'rgba(16,185,129,0.2)' },
     executive: { bg: 'rgba(167,139,250,0.08)', color: '#A78BFA',     border: 'rgba(167,139,250,0.2)' },
@@ -104,7 +113,12 @@ export default function Notices() {
   )
 }
 
-function NoticeCard({ notice, audienceColors }) {
+interface NoticeCardProps {
+  notice: Notice
+  audienceColors: Record<string, { bg: string, color: string, border: string }>
+}
+
+function NoticeCard({ notice, audienceColors }: NoticeCardProps) {
   const [expanded, setExpanded] = useState(false)
   const ac = audienceColors[notice.audience] || audienceColors.all
   const isLong = notice.body?.length > 160
