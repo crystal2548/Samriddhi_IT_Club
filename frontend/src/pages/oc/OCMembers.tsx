@@ -10,7 +10,7 @@ export default function OCMembers() {
   
   const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState('all')
-  const [editId, setEditId] = useState(null)
+  const [editId, setEditId] = useState<string | null>(null)
   const [editRole, setEditRole] = useState('')
   const [editPosition, setEditPosition] = useState('')
   const [saving, setSaving] = useState(false)
@@ -28,30 +28,30 @@ export default function OCMembers() {
     }
   })
 
-  async function saveRole(id) {
+  async function saveRole(id: string) {
     setSaving(true)
-    const updates = { role: editRole }
+    const updates: { role: string, oc_position?: string | null } = { role: editRole }
     if (editRole === 'oc') updates.oc_position = editPosition
     else updates.oc_position = null
     
     await supabase.from('profiles').update(updates).eq('id', id)
     
-    queryClient.setQueryData(['oc_members'], prev => 
-      prev ? prev.map(m => m.id === id ? { ...m, ...updates } : m) : []
+    queryClient.setQueryData(['oc_members'], (prev: any) => 
+      prev ? prev.map((m: any) => m.id === id ? { ...m, ...updates } : m) : []
     )
     
     setEditId(null)
     setSaving(false)
   }
 
-  async function toggleActive(id, current) {
+  async function toggleActive(id: string, current: boolean) {
     await supabase.from('profiles').update({ is_active: !current }).eq('id', id)
-    queryClient.setQueryData(['oc_members'], prev => 
-      prev ? prev.map(m => m.id === id ? { ...m, is_active: !current } : m) : []
+    queryClient.setQueryData(['oc_members'], (prev: any) => 
+      prev ? prev.map((m: any) => m.id === id ? { ...m, is_active: !current } : m) : []
     )
   }
 
-  async function deleteMember(id, name) {
+  async function deleteMember(id: string, name: string) {
     if (!window.confirm(`Are you sure you want to PERMANENTLY delete ${name}? This action cannot be undone.`)) return
     
     const { error } = await supabase.from('profiles').delete().eq('id', id)
@@ -60,12 +60,12 @@ export default function OCMembers() {
       return
     }
     
-    queryClient.setQueryData(['oc_members'], prev => 
-      prev ? prev.filter(m => m.id !== id) : []
+    queryClient.setQueryData(['oc_members'], (prev: any) => 
+      prev ? prev.filter((m: any) => m.id !== id) : []
     )
   }
 
-  const filtered = members.filter(m => {
+  const filtered = members.filter((m: any) => {
     const matchesSearch = m.full_name?.toLowerCase().includes(search.toLowerCase()) || m.email?.toLowerCase().includes(search.toLowerCase())
     const matchesRole = roleFilter === 'all' || m.role === roleFilter
     return matchesSearch && matchesRole
@@ -123,7 +123,7 @@ export default function OCMembers() {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map(m => (
+                {filtered.map((m: any) => (
                   <tr key={m.id} className="border-b border-white/10 hover:bg-white/5 transition-colors duration-150">
                     <td className="p-3 px-4">
                       <div className="flex items-center gap-2.5">

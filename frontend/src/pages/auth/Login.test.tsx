@@ -1,5 +1,6 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
+import '@testing-library/jest-dom'
 import { BrowserRouter } from 'react-router-dom'
 import Login from './Login'
 
@@ -47,8 +48,8 @@ describe('Login Component', () => {
 
   it('attempts to call supabase signIn function on submit', async () => {
     // Override default validation mock resolving to fail or success
-    supabase.auth.signInWithPassword.mockResolvedValueOnce({ 
-      data: { user: { id: '123' } }, error: null 
+    vi.mocked(supabase.auth.signInWithPassword).mockResolvedValueOnce({ 
+      data: { user: { id: '123' } } as any, error: null 
     })
 
     render(

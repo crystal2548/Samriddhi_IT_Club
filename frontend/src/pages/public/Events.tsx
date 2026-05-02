@@ -9,16 +9,16 @@ const TYPE_FILTERS = ['All', 'Hackathon', 'Workshop', 'Seminar', 'Bootcamp', 'So
 
 const TYPE_COLOR: Record<string, string> = {
   hackathon: 'text-[#00D4FF]',
-  workshop:  'text-[#FF2D9B]',
-  seminar:   'text-[#00BFA5]',
-  bootcamp:  'text-[#A78BFA]',
-  social:    'text-[#F59E0B]',
-  fest:      'text-[#FF2D9B]',
+  workshop: 'text-[#FF2D9B]',
+  seminar: 'text-[#00BFA5]',
+  bootcamp: 'text-[#A78BFA]',
+  social: 'text-[#F59E0B]',
+  fest: 'text-[#FF2D9B]',
 }
 
 const STATUS_CONFIG: Record<string, { label: string, classes: string }> = {
-  upcoming:  { label: 'Upcoming',  classes: 'bg-[#10B981]/10 text-[#10B981] border-[#10B981]/25' },
-  ongoing:   { label: 'Ongoing',   classes: 'bg-[#F59E0B]/10 text-[#F59E0B] border-[#F59E0B]/25' },
+  upcoming: { label: 'Upcoming', classes: 'bg-[#10B981]/10 text-[#10B981] border-[#10B981]/25' },
+  ongoing: { label: 'Ongoing', classes: 'bg-[#F59E0B]/10 text-[#F59E0B] border-[#F59E0B]/25' },
   completed: { label: 'Completed', classes: 'bg-gray-500/15 text-gray-400 border-gray-500/25' },
   cancelled: { label: 'Cancelled', classes: 'bg-[#EF4444]/10 text-[#EF4444] border-[#EF4444]/25' },
 }
@@ -27,7 +27,7 @@ export default function Events() {
   const navigate = useNavigate()
   const { user } = useAuth()
   const queryClient = useQueryClient()
-  
+
   const [typeFilter, setTypeFilter] = useState('All')
   const [timeFilter, setTimeFilter] = useState('upcoming')
   const [search, setSearch] = useState('')
@@ -105,7 +105,7 @@ export default function Events() {
             Events
           </h1>
           {/* Accent underline */}
-          <div className="w-[60px] h-[3px] bg-gradient-to-r from-[#00D4FF] to-[#FF2D9B] rounded-sm mb-4"/>
+          <div className="w-[60px] h-[3px] bg-gradient-to-r from-[#00D4FF] to-[#FF2D9B] rounded-sm mb-4" />
           <p className="text-gray-400 text-[14px] max-w-[520px] leading-[1.7]">
             Join our curated sessions designed to bridge the gap between academic theory and industry reality. From high-stakes hackathons to focused workshops.
           </p>
@@ -120,11 +120,10 @@ export default function Events() {
             <div className="flex gap-1.5 flex-wrap flex-1">
               {TYPE_FILTERS.map(t => (
                 <button key={t} onClick={() => setTypeFilter(t)}
-                  className={`px-3.5 py-1.5 rounded-full text-[12px] font-medium cursor-pointer transition-all ${
-                    typeFilter === t 
-                    ? 'bg-[#00D4FF]/10 text-[#00D4FF] border border-[#00D4FF]/30' 
+                  className={`px-3.5 py-1.5 rounded-full text-[12px] font-medium cursor-pointer transition-all ${typeFilter === t
+                    ? 'bg-[#00D4FF]/10 text-[#00D4FF] border border-[#00D4FF]/30'
                     : 'bg-transparent text-gray-500 border border-white/10 hover:border-white/20'
-                  }`}
+                    }`}
                 >
                   {t}
                 </button>
@@ -136,9 +135,8 @@ export default function Events() {
               <div className="flex bg-[#0D1829] border border-white/10 rounded-full p-[3px] gap-[2px]">
                 {['upcoming', 'past'].map(t => (
                   <button key={t} onClick={() => setTimeFilter(t)}
-                    className={`px-3.5 py-[5px] rounded-[17px] text-[11px] font-semibold cursor-pointer capitalize transition-all border-none ${
-                      timeFilter === t ? 'bg-[#00D4FF]/15 text-[#00D4FF]' : 'bg-transparent text-gray-500 hover:text-gray-300'
-                    }`}
+                    className={`px-3.5 py-[5px] rounded-[17px] text-[11px] font-semibold cursor-pointer capitalize transition-all border-none ${timeFilter === t ? 'bg-[#00D4FF]/15 text-[#00D4FF]' : 'bg-transparent text-gray-500 hover:text-gray-300'
+                      }`}
                   >
                     {t}
                   </button>
@@ -148,7 +146,7 @@ export default function Events() {
               {/* Search */}
               <div className="relative">
                 <svg className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                  <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
                 </svg>
                 <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Find an event..."
                   className="bg-[#0D1829] border border-white/10 rounded-full py-1.5 pr-3.5 pl-8 text-white text-[12px] outline-none w-[160px] font-['Inter',sans-serif] focus:border-[#00D4FF]/40 transition-colors"
@@ -164,13 +162,13 @@ export default function Events() {
         <div className="container mx-auto px-6">
           {loading ? (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {[1,2,3,4,5,6].map(i => (
+              {[1, 2, 3, 4, 5, 6].map(i => (
                 <div key={i} className="bg-[#0D1829] border border-white/10 rounded-xl overflow-hidden animate-pulse">
-                  <div className="h-[180px] bg-white/5"/>
+                  <div className="h-[180px] bg-white/5" />
                   <div className="p-5 flex flex-col gap-2.5">
-                    <div className="h-2.5 rounded bg-white/5 w-[40%]"/>
-                    <div className="h-3.5 rounded bg-white/5 w-[80%]"/>
-                    <div className="h-2.5 rounded bg-white/[0.03] w-[60%]"/>
+                    <div className="h-2.5 rounded bg-white/5 w-[40%]" />
+                    <div className="h-3.5 rounded bg-white/5 w-[80%]" />
+                    <div className="h-2.5 rounded bg-white/[0.03] w-[60%]" />
                   </div>
                 </div>
               ))}
@@ -178,7 +176,7 @@ export default function Events() {
           ) : filtered.length === 0 ? (
             <div className="text-center py-20 px-6 border border-dashed border-white/10 rounded-2xl">
               <svg className="mx-auto mb-4 text-white/10" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
-                <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                <rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
               </svg>
               <p className="text-gray-300 text-[15px] font-medium mb-1.5">No events found</p>
               <p className="text-gray-500 text-[13px]">Try changing the filters or check back soon.</p>
@@ -193,53 +191,57 @@ export default function Events() {
 
                 return (
                   <div key={event.id}
-                    className="bg-[#0D1829] border border-white/10 rounded-xl overflow-hidden flex flex-col cursor-pointer transition-all duration-200 hover:border-[#00D4FF]/25 hover:-translate-y-1"
+                    className="bg-[#0D1829] border border-white/10 rounded-2xl overflow-hidden flex flex-col cursor-pointer transition-all duration-300 hover:border-[#00D4FF]/30 hover:-translate-y-1.5 hover:shadow-[0_15px_30px_-10px_rgba(0,212,255,0.15)] group"
                     onClick={() => navigate(`/events/${event.id}`)}
                   >
                     {/* Banner */}
-                    <div className="h-[180px] bg-gradient-to-br from-[#0D1829] to-[#142040] relative overflow-hidden">
+                    <div className="h-[240px] w-full bg-[#050812] relative overflow-hidden flex items-center justify-center">
+                      {event.banner_url && (
+                        <div
+                          className="absolute inset-0 bg-cover bg-center blur-2xl opacity-40 scale-125 transition-transform duration-500 group-hover:scale-150 group-hover:opacity-60"
+                          style={{ backgroundImage: `url(${event.banner_url})` }}
+                        />
+                      )}
                       {event.banner_url
-                        ? <img src={event.banner_url} alt={event.title} className="w-full h-full object-cover"/>
-                        : <div className="w-full h-full flex items-center justify-center">
-                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="rgba(0,212,255,0.1)" strokeWidth="1"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                          </div>
+                        ? <img src={event.banner_url} alt={event.title} className="relative z-10 w-full h-full object-contain transition-transform duration-500 group-hover:scale-105 p-2" />
+                        : <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#0D1829] to-[#142040] relative z-10">
+                          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="rgba(0,212,255,0.15)" strokeWidth="1"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
+                        </div>
                       }
                       {/* Status badge */}
-                      <div className="absolute top-3 right-3">
-                        <span className={`text-[10px] font-semibold px-2.5 py-1 rounded-full border ${st.classes}`}>{st.label}</span>
+                      <div className="absolute top-4 right-4 z-20">
+                        <span className={`text-[11px] font-bold tracking-wide px-3 py-1.5 rounded-full border backdrop-blur-md shadow-sm bg-[#0D1829]/50 ${st.classes}`}>{st.label}</span>
                       </div>
                       {/* Bottom line */}
-                      <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#00D4FF]/40 to-transparent"/>
+                      <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#00D4FF]/40 to-transparent z-20" />
                     </div>
 
                     {/* Body */}
-                    <div className="p-4.5 pb-5 flex-1 flex flex-col">
-                      <span className={`text-[10px] font-bold uppercase tracking-[0.08em] mb-2 block ${TYPE_COLOR[event.type] || 'text-[#00D4FF]'}`}>{event.type}</span>
-                      <h3 className="text-white text-[14px] font-bold leading-[1.3] mb-2">{event.title}</h3>
+                    <div className="p-7 pb-8 flex-1 flex flex-col">
+                      <span className={`text-[12px] font-black uppercase tracking-[0.1em] mb-3 block ${TYPE_COLOR[event.type] || 'text-[#00D4FF]'}`}>{event.type}</span>
+                      <h3 className="text-white text-[19px] font-bold leading-[1.35] mb-3.5 group-hover:text-[#00D4FF] transition-colors">{event.title}</h3>
                       {event.description && (
-                        <p className="text-gray-400 text-[12px] leading-[1.6] mb-3 flex-1">
-                          {event.description.slice(0, 80)}...
+                        <p className="text-gray-400 text-[14px] leading-[1.65] mb-6 flex-1 line-clamp-3">
+                          {event.description}
                         </p>
                       )}
 
                       {/* Meta */}
-                      <div className="flex flex-col gap-1.5 mb-3.5">
+                      <div className="flex flex-col gap-3.5 mb-7">
                         {event.event_date && (
-                          <div className="flex items-center gap-1.5 text-gray-400 text-[12px]">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                          <div className="flex items-center gap-3 text-gray-300 text-[13px] font-medium">
+                            <div className="w-7 h-7 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-[#00D4FF]">
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
+                            </div>
                             {formatDateTime(event.event_date)}
                           </div>
                         )}
                         {event.location && (
-                          <div className="flex items-center gap-1.5 text-gray-400 text-[12px]">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                          <div className="flex items-center gap-3 text-gray-300 text-[13px] font-medium">
+                            <div className="w-7 h-7 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-[#FF2D9B]">
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></svg>
+                            </div>
                             {event.location}
-                          </div>
-                        )}
-                        {event.max_participants && (
-                          <div className="flex items-center gap-1.5 text-gray-400 text-[12px]">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
-                            {event.max_participants} seats
                           </div>
                         )}
                       </div>
@@ -248,15 +250,14 @@ export default function Events() {
                       <button
                         onClick={e => { e.stopPropagation(); canRegister && (isRegistered ? unregisterMutation.mutate(event.id) : registerMutation.mutate(event.id)) }}
                         disabled={pending || !canRegister}
-                        className={`w-full p-2.5 rounded-lg text-[11px] font-bold uppercase tracking-[0.06em] transition-all border ${
-                          isRegistered
-                          ? 'bg-[#EF4444]/10 border-[#EF4444]/20 text-[#EF4444] hover:bg-[#EF4444]/15'
+                        className={`w-full py-3.5 rounded-xl text-[13px] font-bold uppercase tracking-[0.08em] transition-all border ${isRegistered
+                          ? 'bg-[#EF4444]/10 border-[#EF4444]/20 text-[#EF4444] hover:bg-[#EF4444] hover:text-white'
                           : canRegister
-                          ? 'bg-[#00D4FF]/10 border-[#00D4FF]/20 text-[#00D4FF] hover:bg-[#00D4FF]/15 cursor-pointer'
-                          : 'bg-gray-500/10 border-gray-500/20 text-gray-500 cursor-not-allowed'
-                        }`}
+                            ? 'bg-gradient-to-r from-[#00D4FF]/10 to-[#00D4FF]/5 border-[#00D4FF]/20 text-[#00D4FF] hover:bg-[#00D4FF] hover:text-[#0A0E1A] hover:shadow-[0_0_20px_rgba(0,212,255,0.4)] cursor-pointer'
+                            : 'bg-gray-500/10 border-gray-500/20 text-gray-500 cursor-not-allowed'
+                          }`}
                       >
-                        {pending ? '...' : isRegistered ? 'Unregister' : canRegister ? 'Register Now' : 'Event Ended'}
+                        {pending ? '...' : isRegistered ? 'Unregister' : canRegister ? 'Register Now →' : 'Event Ended'}
                       </button>
                     </div>
                   </div>
@@ -280,10 +281,10 @@ export default function Events() {
             {/* Banner */}
             <div className="h-[200px] bg-gradient-to-br from-[#0D1829] to-[#142040] relative overflow-hidden rounded-t-2xl">
               {selected.banner_url
-                ? <img src={selected.banner_url} alt={selected.title} className="w-full h-full object-cover"/>
+                ? <img src={selected.banner_url} alt={selected.title} className="w-full h-full object-cover" />
                 : <div className="w-full h-full flex items-center justify-center">
-                    <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="rgba(0,212,255,0.1)" strokeWidth="1"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                  </div>
+                  <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="rgba(0,212,255,0.1)" strokeWidth="1"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
+                </div>
               }
               {/* Type badge */}
               <div className="absolute top-4 left-4">
@@ -292,7 +293,7 @@ export default function Events() {
                 </span>
               </div>
               {/* Close */}
-              <button 
+              <button
                 onClick={() => setSelected(null)}
                 className="absolute top-4 right-4 w-8 h-8 rounded-full bg-black/50 border border-white/10 text-white flex items-center justify-center text-[18px] leading-none cursor-pointer hover:bg-black/70"
               >
@@ -345,12 +346,11 @@ export default function Events() {
                     ) : (
                       <button
                         onClick={() => registeredIds.includes(selected.id) ? unregisterMutation.mutate(selected.id) : registerMutation.mutate(selected.id)}
-                        disabled={registerMutation.isPending || unregisterMutation.isPending || !['upcoming','ongoing'].includes(selected.status)}
-                        className={`w-full p-2.5 rounded-lg text-[12px] font-bold uppercase tracking-[0.06em] transition-all cursor-pointer ${
-                          registeredIds.includes(selected.id)
+                        disabled={registerMutation.isPending || unregisterMutation.isPending || !['upcoming', 'ongoing'].includes(selected.status)}
+                        className={`w-full p-2.5 rounded-lg text-[12px] font-bold uppercase tracking-[0.06em] transition-all cursor-pointer ${registeredIds.includes(selected.id)
                           ? 'bg-[#EF4444]/10 border border-[#EF4444]/30 text-[#EF4444] hover:bg-[#EF4444]/20'
                           : 'bg-[#00D4FF] border border-transparent text-[#0A0E1A] hover:bg-white'
-                        }`}
+                          }`}
                       >
                         {(registerMutation.isPending || unregisterMutation.isPending) ? '...' : registeredIds.includes(selected.id) ? 'Unregister' : 'Register Now'}
                       </button>
@@ -367,13 +367,13 @@ export default function Events() {
                 <div className="mt-3 flex flex-col gap-2">
                   {selected.event_date && (
                     <div className="flex gap-2 text-[12px] text-gray-400">
-                      <svg className="shrink-0 mt-[1px]" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                      <svg className="shrink-0 mt-[1px]" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
                       {formatDateTime(selected.event_date)}
                     </div>
                   )}
                   {selected.location && (
                     <div className="flex gap-2 text-[12px] text-gray-400">
-                      <svg className="shrink-0 mt-[1px]" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                      <svg className="shrink-0 mt-[1px]" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></svg>
                       {selected.location}
                     </div>
                   )}

@@ -58,7 +58,7 @@ const ICONS = {
   settings: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>,
 }
 
-export default function OCSidebar({ badges = {} }) {
+export default function OCSidebar({ badges = {} }: { badges?: Record<string, number> }) {
   const { profile } = useAuth()
   const { settings } = useSiteSettings()
   const location = useLocation()
@@ -130,7 +130,7 @@ export default function OCSidebar({ badges = {} }) {
             </div>
             {group.items.map((item) => {
               const isActive = location.pathname === item.path
-              const badgeCount = badges[item.badge] || 0
+              const badgeCount = item.badge ? (badges[item.badge] || 0) : 0
               return (
                 <Link
                   key={item.path}
@@ -147,7 +147,7 @@ export default function OCSidebar({ badges = {} }) {
                   onMouseEnter={e => { if (!isActive) { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.color = 'var(--text-secondary)' }}}
                   onMouseLeave={e => { if (!isActive) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-muted)' }}}
                 >
-                  <span style={{ flexShrink: 0 }}>{ICONS[item.icon]}</span>
+                  <span style={{ flexShrink: 0 }}>{ICONS[item.icon as keyof typeof ICONS]}</span>
                   <span style={{ fontSize: 13, fontWeight: isActive ? 600 : 400, flex: 1 }}>{item.label}</span>
                   {badgeCount > 0 && (
                     <span style={{ fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 10, background: 'rgba(245,158,11,0.15)', color: '#F59E0B', border: '1px solid rgba(245,158,11,0.25)' }}>
