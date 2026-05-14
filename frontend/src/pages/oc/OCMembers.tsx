@@ -4,10 +4,26 @@ import { supabase } from '../../utils/supabase'
 import { useAuth } from '../../context/AuthContext'
 import { formatDate } from '../../utils/formatters'
 
+// ── Shared container — same pattern used across all pages ──
+function Container({ children, style = {} }: { children: React.ReactNode, style?: React.CSSProperties }) {
+  return (
+    <div style={{
+      width: '100%',
+      maxWidth: 1200,
+      margin: '0 auto',
+      padding: '0 32px',
+      boxSizing: 'border-box',
+      ...style
+    }}>
+      {children}
+    </div>
+  )
+}
+
 export default function OCMembers() {
   const { profile: currentProfile } = useAuth()
   const queryClient = useQueryClient()
-  
+
   const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState('all')
   const [editId, setEditId] = useState<string | null>(null)
@@ -33,193 +49,290 @@ export default function OCMembers() {
     const updates: { role: string, oc_position?: string | null } = { role: editRole }
     if (editRole === 'oc') updates.oc_position = editPosition
     else updates.oc_position = null
-    
+
     await supabase.from('profiles').update(updates).eq('id', id)
-    
-    queryClient.setQueryData(['oc_members'], (prev: any) => 
+    queryClient.setQueryData(['oc_members'], (prev: any) =>
       prev ? prev.map((m: any) => m.id === id ? { ...m, ...updates } : m) : []
     )
-    
     setEditId(null)
     setSaving(false)
   }
 
   async function toggleActive(id: string, current: boolean) {
     await supabase.from('profiles').update({ is_active: !current }).eq('id', id)
-    queryClient.setQueryData(['oc_members'], (prev: any) => 
+    queryClient.setQueryData(['oc_members'], (prev: any) =>
       prev ? prev.map((m: any) => m.id === id ? { ...m, is_active: !current } : m) : []
     )
   }
 
   async function deleteMember(id: string, name: string) {
     if (!window.confirm(`Are you sure you want to PERMANENTLY delete ${name}? This action cannot be undone.`)) return
-    
     const { error } = await supabase.from('profiles').delete().eq('id', id)
-    if (error) {
-      alert("Error deleting member: " + error.message)
-      return
-    }
-    
-    queryClient.setQueryData(['oc_members'], (prev: any) => 
+    if (error) { alert('Error deleting member: ' + error.message); return }
+    queryClient.setQueryData(['oc_members'], (prev: any) =>
       prev ? prev.filter((m: any) => m.id !== id) : []
     )
   }
 
   const filtered = members.filter((m: any) => {
-    const matchesSearch = m.full_name?.toLowerCase().includes(search.toLowerCase()) || m.email?.toLowerCase().includes(search.toLowerCase())
+    const matchesSearch = m.full_name?.toLowerCase().includes(search.toLowerCase()) ||
+      m.email?.toLowerCase().includes(search.toLowerCase())
     const matchesRole = roleFilter === 'all' || m.role === roleFilter
     return matchesSearch && matchesRole
   })
 
-  const OC_POSITIONS = ['president','vice_president','secretary','treasurer','event_coordinator','technical_lead','media_design','graphics_designer','video_editor']
+  const OC_POSITIONS = [
+    'president', 'vice_president', 'secretary', 'treasurer',
+    'event_coordinator', 'technical_lead', 'media_design', 'graphics_designer', 'video_editor'
+  ]
 
   return (
-    <div>
-      <div className="mb-7">
-        <p className="text-[#00D4FF] text-[11px] font-bold uppercase tracking-[0.1em] mb-1.5">Members</p>
-        <h1 className="font-['Barlow_Condensed',sans-serif] text-[32px] font-extrabold text-white uppercase">All Members</h1>
-        <p className="text-gray-400 text-[13px] mt-1">{members.length} total members</p>
-      </div>
+    <div style={{ paddingTop: 40, paddingBottom: 60 }}>
+      <Container>
 
-      {/* Filters */}
-      <div className="flex gap-3 mb-5 flex-wrap items-center">
-        <div className="relative flex-1 min-w-[200px]">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
-            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-          </svg>
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by name or email..."
-            className="w-full bg-[#0D1829] border border-white/10 rounded-lg py-2 px-3 pl-9 text-white text-[13px] outline-none font-sans focus:border-[#00D4FF]/40 transition-colors"
-          />
+        {/* ── Header ── */}
+        <div style={{ marginBottom: 28 }}>
+          <p style={{ color: '#00D4FF', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>
+            Members
+          </p>
+          <h1 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 32, fontWeight: 800, color: 'white', textTransform: 'uppercase', margin: 0, lineHeight: 1.1 }}>
+            All Members
+          </h1>
+          <p style={{ color: '#9ca3af', fontSize: 13, marginTop: 6 }}>
+            {members.length} total members
+          </p>
         </div>
-        
-        {['all','general','executive','oc'].map(r => (
-          <button key={r} onClick={() => setRoleFilter(r)}
-            className={`px-4 py-2 rounded-full text-[12px] font-medium cursor-pointer capitalize transition-all duration-150 border ${
-              roleFilter === r 
-                ? 'bg-[#00D4FF]/10 text-[#00D4FF] border-[#00D4FF]/30' 
-                : 'bg-transparent text-gray-400 border-white/10 hover:border-white/20'
-            }`}>
-            {r}
-          </button>
-        ))}
-      </div>
 
-      {/* Table */}
-      <div className="bg-[#0D1829] border border-white/10 rounded-xl overflow-hidden self-start">
-        {loading ? (
-          <div className="p-8 text-center text-gray-400 text-[13px]">Loading...</div>
-        ) : filtered.length === 0 ? (
-          <div className="p-12 text-center text-gray-400 text-[13px]">No members found.</div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="border-b border-white/10">
-                  {['Member','Role / Position','Year','Status','Joined','Actions'].map(h => (
-                    <th key={h} className={`p-3 px-4 text-[10px] font-bold text-gray-400 uppercase tracking-[0.08em] whitespace-nowrap ${h === 'Actions' ? 'text-right' : 'text-left'}`}>
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((m: any) => (
-                  <tr key={m.id} className="border-b border-white/10 hover:bg-white/5 transition-colors duration-150">
-                    <td className="p-3 px-4">
-                      <div className="flex items-center gap-2.5">
-                        {m.photo_url
-                          ? <img src={m.photo_url} alt={m.full_name} className="w-8 h-8 rounded-full object-cover shrink-0"/>
-                          : <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#00D4FF] to-[#0066FF] flex items-center justify-center text-[11px] font-bold text-white shrink-0">{m.full_name?.[0]}</div>
-                        }
-                        <div>
-                          <p className="text-white text-[13px] font-medium">{m.full_name}</p>
-                          <p className="text-gray-400 text-[11px]">{m.email}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="p-3 px-4">
-                      {editId === m.id ? (
-                        <div className="flex flex-col gap-1.5">
-                          <select value={editRole} onChange={e => setEditRole(e.target.value)}
-                            className="bg-[#0A0E1A] border border-white/10 rounded-md py-1 px-2 text-white text-[12px] outline-none">
-                            <option value="general">General</option>
-                            <option value="executive">Executive</option>
-                            <option value="oc">OC</option>
-                          </select>
-                          {editRole === 'oc' && (
-                            <select value={editPosition} onChange={e => setEditPosition(e.target.value)}
-                              className="bg-[#0A0E1A] border border-white/10 rounded-md py-1 px-2 text-white text-[12px] outline-none">
-                              <option value="">Select position</option>
-                              {OC_POSITIONS.map(p => <option key={p} value={p}>{p.replace(/_/g,' ')}</option>)}
-                            </select>
-                          )}
-                        </div>
-                      ) : (
-                        <div>
-                          <span className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full capitalize border ${
-                            m.role === 'oc' ? 'bg-[#FF2D9B]/10 text-[#FF2D9B] border-[#FF2D9B]/25' : 
-                            m.role === 'executive' ? 'bg-[#00D4FF]/10 text-[#00D4FF] border-[#00D4FF]/25' : 
-                            'bg-white/5 text-gray-400 border-white/10'
-                          }`}>
-                            {m.role}
-                          </span>
-                          {m.oc_position && <p className="text-gray-400 text-[10px] mt-1 capitalize">{m.oc_position.replace(/_/g,' ')}</p>}
-                        </div>
-                      )}
-                    </td>
-                    <td className="p-3 px-4 text-gray-400 text-[13px]">Year {m.college_year || '—'}</td>
-                    <td className="p-3 px-4">
-                      <span className={`text-[10px] font-semibold px-2.5 py-0.5 rounded-full border ${
-                        m.is_active ? 'bg-[#10B981]/10 text-[#10B981] border-[#10B981]/25' : 'bg-[#EF4444]/10 text-[#EF4444] border-[#EF4444]/25'
-                      }`}>
-                        {m.is_active ? 'Active' : 'Suspended'}
-                      </span>
-                    </td>
-                    <td className="p-3 px-4 text-gray-400 text-[11px] font-mono whitespace-nowrap">{formatDate(m.created_at)}</td>
-                    <td className="p-3 px-4">
-                      {isPresident && (
-                        <div className="flex gap-1 flex-nowrap justify-end">
-                          {editId === m.id ? (
-                            <>
-                              <button onClick={() => saveRole(m.id)} disabled={saving}
-                                className="px-2.5 py-1.5 rounded-md bg-[#10B981]/10 border border-[#10B981]/25 text-[#10B981] text-[11px] font-medium cursor-pointer whitespace-nowrap hover:bg-[#10B981]/20">
-                                {saving ? '...' : 'Save'}
-                              </button>
-                              <button onClick={() => setEditId(null)}
-                                className="px-2.5 py-1.5 rounded-md bg-transparent border border-white/10 text-gray-400 text-[11px] font-medium cursor-pointer whitespace-nowrap hover:bg-white/5">
-                                Cancel
-                              </button>
-                            </>
-                          ) : (
-                            <>
-                              <button onClick={() => { setEditId(m.id); setEditRole(m.role); setEditPosition(m.oc_position || '') }}
-                                className="px-2.5 py-1.5 rounded-md bg-[#00D4FF]/10 border border-[#00D4FF]/20 text-[#00D4FF] text-[11px] font-medium cursor-pointer whitespace-nowrap hover:bg-[#00D4FF]/20">
-                                Edit
-                              </button>
-                              <button onClick={() => toggleActive(m.id, m.is_active)}
-                                className={`px-2.5 py-1.5 rounded-md border text-[11px] font-medium cursor-pointer whitespace-nowrap ${
-                                  m.is_active 
-                                    ? 'bg-[#EF4444]/10 border-[#EF4444]/25 text-[#EF4444] hover:bg-[#EF4444]/20' 
-                                    : 'bg-[#10B981]/10 border-[#10B981]/25 text-[#10B981] hover:bg-[#10B981]/20'
-                                }`}>
-                                {m.is_active ? 'Suspend' : 'Activate'}
-                              </button>
-                              <button onClick={() => deleteMember(m.id, m.full_name)}
-                                className="px-2.5 py-1.5 rounded-md bg-[#EF4444]/15 border border-[#EF4444]/30 text-[#EF4444] text-[11px] font-medium cursor-pointer whitespace-nowrap hover:bg-[#EF4444]/25">
-                                Delete
-                              </button>
-                            </>
-                          )}
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        {/* ── Filters ── */}
+        <div style={{ display: 'flex', gap: 12, marginBottom: 20, alignItems: 'center', flexWrap: 'wrap' }}>
+
+          {/* Search — fixed width, doesn't stretch infinitely */}
+          <div style={{ position: 'relative', width: 320, flexShrink: 0 }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+              style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#9ca3af', pointerEvents: 'none' }}>
+              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+            </svg>
+            <input
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Search by name or email..."
+              style={{
+                width: '100%',
+                background: '#0D1829',
+                border: '1px solid rgba(255,255,255,0.1)',
+                borderRadius: 8,
+                padding: '8px 12px 8px 36px',
+                color: 'white',
+                fontSize: 13,
+                outline: 'none',
+                boxSizing: 'border-box',
+              }}
+            />
           </div>
-        )}
-      </div>
+
+          {/* Role filter pills */}
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            {['all', 'general', 'executive', 'oc'].map(r => (
+              <button
+                key={r}
+                onClick={() => setRoleFilter(r)}
+                style={{
+                  padding: '6px 16px',
+                  borderRadius: 999,
+                  fontSize: 12,
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  textTransform: 'capitalize',
+                  border: '1px solid',
+                  transition: 'all 0.15s',
+                  background: roleFilter === r ? 'rgba(0,212,255,0.1)' : 'transparent',
+                  color: roleFilter === r ? '#00D4FF' : '#9ca3af',
+                  borderColor: roleFilter === r ? 'rgba(0,212,255,0.3)' : 'rgba(255,255,255,0.1)',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {r}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* ── Table ── */}
+        <div style={{
+          background: '#0D1829',
+          border: '1px solid rgba(255,255,255,0.1)',
+          borderRadius: 12,
+          overflow: 'hidden',
+        }}>
+          {loading ? (
+            <div style={{ padding: 32, textAlign: 'center', color: '#9ca3af', fontSize: 13 }}>Loading...</div>
+          ) : filtered.length === 0 ? (
+            <div style={{ padding: 48, textAlign: 'center', color: '#9ca3af', fontSize: 13 }}>No members found.</div>
+          ) : (
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                    {['Member', 'Role / Position', 'Year', 'Status', 'Joined', 'Actions'].map(h => (
+                      <th key={h} style={{
+                        padding: '12px 16px',
+                        fontSize: 10,
+                        fontWeight: 700,
+                        color: '#9ca3af',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.08em',
+                        whiteSpace: 'nowrap',
+                        textAlign: h === 'Actions' ? 'right' : 'left',
+                      }}>
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map((m: any) => (
+                    <tr key={m.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}
+                      className="hover:bg-white/5 transition-colors duration-150">
+
+                      {/* Member */}
+                      <td style={{ padding: '12px 16px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                          {m.photo_url
+                            ? <img src={m.photo_url} alt={m.full_name} style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
+                            : <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'linear-gradient(135deg, #00D4FF, #0066FF)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: 'white', flexShrink: 0 }}>
+                                {m.full_name?.[0]}
+                              </div>
+                          }
+                          <div>
+                            <p style={{ color: 'white', fontSize: 13, fontWeight: 500, margin: 0 }}>{m.full_name}</p>
+                            <p style={{ color: '#9ca3af', fontSize: 11, margin: 0 }}>{m.email}</p>
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* Role / Position */}
+                      <td style={{ padding: '12px 16px' }}>
+                        {editId === m.id ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                            <select value={editRole} onChange={e => setEditRole(e.target.value)}
+                              style={{ background: '#0A0E1A', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 6, padding: '4px 8px', color: 'white', fontSize: 12, outline: 'none' }}>
+                              <option value="general">General</option>
+                              <option value="executive">Executive</option>
+                              <option value="oc">OC</option>
+                            </select>
+                            {editRole === 'oc' && (
+                              <select value={editPosition} onChange={e => setEditPosition(e.target.value)}
+                                style={{ background: '#0A0E1A', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 6, padding: '4px 8px', color: 'white', fontSize: 12, outline: 'none' }}>
+                                <option value="">Select position</option>
+                                {OC_POSITIONS.map(p => <option key={p} value={p}>{p.replace(/_/g, ' ')}</option>)}
+                              </select>
+                            )}
+                          </div>
+                        ) : (
+                          <div>
+                            <span style={{
+                              fontSize: 11, fontWeight: 600, padding: '2px 10px', borderRadius: 999,
+                              textTransform: 'capitalize', border: '1px solid',
+                              background: m.role === 'oc' ? 'rgba(255,45,155,0.1)' : m.role === 'executive' ? 'rgba(0,212,255,0.1)' : 'rgba(255,255,255,0.05)',
+                              color: m.role === 'oc' ? '#FF2D9B' : m.role === 'executive' ? '#00D4FF' : '#9ca3af',
+                              borderColor: m.role === 'oc' ? 'rgba(255,45,155,0.25)' : m.role === 'executive' ? 'rgba(0,212,255,0.25)' : 'rgba(255,255,255,0.1)',
+                            }}>
+                              {m.role}
+                            </span>
+                            {m.oc_position && (
+                              <p style={{ color: '#9ca3af', fontSize: 10, marginTop: 4, textTransform: 'capitalize' }}>
+                                {m.oc_position.replace(/_/g, ' ')}
+                              </p>
+                            )}
+                          </div>
+                        )}
+                      </td>
+
+                      {/* Year */}
+                      <td style={{ padding: '12px 16px', color: '#9ca3af', fontSize: 13 }}>
+                        Year {m.college_year || '—'}
+                      </td>
+
+                      {/* Status */}
+                      <td style={{ padding: '12px 16px' }}>
+                        <span style={{
+                          fontSize: 10, fontWeight: 600, padding: '2px 10px', borderRadius: 999, border: '1px solid',
+                          background: m.is_active ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)',
+                          color: m.is_active ? '#10B981' : '#EF4444',
+                          borderColor: m.is_active ? 'rgba(16,185,129,0.25)' : 'rgba(239,68,68,0.25)',
+                        }}>
+                          {m.is_active ? 'Active' : 'Suspended'}
+                        </span>
+                      </td>
+
+                      {/* Joined */}
+                      <td style={{ padding: '12px 16px', color: '#9ca3af', fontSize: 11, fontFamily: 'monospace', whiteSpace: 'nowrap' }}>
+                        {formatDate(m.created_at)}
+                      </td>
+
+                      {/* Actions */}
+                      <td style={{ padding: '12px 16px' }}>
+                        {isPresident && (
+                          <div style={{ display: 'flex', gap: 4, flexWrap: 'nowrap', justifyContent: 'flex-end' }}>
+                            {editId === m.id ? (
+                              <>
+                                <ActionBtn onClick={() => saveRole(m.id)} color="#10B981">
+                                  {saving ? '...' : 'Save'}
+                                </ActionBtn>
+                                <ActionBtn onClick={() => setEditId(null)} color="#9ca3af">
+                                  Cancel
+                                </ActionBtn>
+                              </>
+                            ) : (
+                              <>
+                                <ActionBtn onClick={() => { setEditId(m.id); setEditRole(m.role); setEditPosition(m.oc_position || '') }} color="#00D4FF">
+                                  Edit
+                                </ActionBtn>
+                                <ActionBtn onClick={() => toggleActive(m.id, m.is_active)} color={m.is_active ? '#EF4444' : '#10B981'}>
+                                  {m.is_active ? 'Suspend' : 'Activate'}
+                                </ActionBtn>
+                                <ActionBtn onClick={() => deleteMember(m.id, m.full_name)} color="#EF4444">
+                                  Delete
+                                </ActionBtn>
+                              </>
+                            )}
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+      </Container>
     </div>
+  )
+}
+
+/* ── Small reusable action button ── */
+function ActionBtn({ onClick, color, children }: { onClick: () => void, color: string, children: React.ReactNode }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        padding: '6px 10px',
+        borderRadius: 6,
+        background: `${color}1a`,
+        border: `1px solid ${color}40`,
+        color,
+        fontSize: 11,
+        fontWeight: 500,
+        cursor: 'pointer',
+        whiteSpace: 'nowrap',
+        transition: 'background 0.15s',
+      }}
+      onMouseEnter={e => (e.currentTarget.style.background = `${color}33`)}
+      onMouseLeave={e => (e.currentTarget.style.background = `${color}1a`)}
+    >
+      {children}
+    </button>
   )
 }

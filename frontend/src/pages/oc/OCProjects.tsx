@@ -24,10 +24,26 @@ const EMPTY_PROJECT: AppProject = {
   is_featured: false, category: 'Web Development'
 }
 
+// ── Shared container ──
+function Container({ children, style = {} }: { children: React.ReactNode, style?: React.CSSProperties }) {
+  return (
+    <div style={{
+      width: '100%',
+      maxWidth: 1200,
+      margin: '0 auto',
+      padding: '0 32px',
+      boxSizing: 'border-box',
+      ...style
+    }}>
+      {children}
+    </div>
+  )
+}
+
 export default function OCProjects() {
   const { profile } = useAuth()
   const queryClient = useQueryClient()
-  
+
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState<AppProject>(EMPTY_PROJECT)
   const [editId, setEditId] = useState<string | null>(null)
@@ -46,23 +62,18 @@ export default function OCProjects() {
     if (!form.title) { setError('Title is required.'); return }
     setSaving(true); setError('')
 
-    const techArray = typeof form.tech_stack === 'string' 
+    const techArray = typeof form.tech_stack === 'string'
       ? form.tech_stack.split(',').map(t => t.trim()).filter(t => t)
       : form.tech_stack
 
     const { category, ...formData } = form
-
-    const payload = {
-      ...formData,
-      tech_stack: techArray,
-      added_by: profile?.id,
-    }
+    const payload = { ...formData, tech_stack: techArray, added_by: profile?.id }
 
     try {
       if (editId) {
         const { error: err } = await supabase.from('projects').update(payload).eq('id', editId)
         if (err) throw err
-        queryClient.setQueryData(['oc_projects'], (prev: AppProject[] | undefined) => 
+        queryClient.setQueryData(['oc_projects'], (prev: AppProject[] | undefined) =>
           prev ? prev.map(p => p.id === editId ? { ...p, ...payload } : p) : []
         )
       } else {
@@ -86,7 +97,7 @@ export default function OCProjects() {
     if (err) {
       alert('Delete failed: ' + err.message)
     } else {
-      queryClient.setQueryData(['oc_projects'], (prev: AppProject[] | undefined) => 
+      queryClient.setQueryData(['oc_projects'], (prev: AppProject[] | undefined) =>
         prev ? prev.filter(p => p.id !== id) : []
       )
     }
@@ -101,159 +112,279 @@ export default function OCProjects() {
   }
 
   return (
-    <div>
-      {/* Header */}
-      <div className="flex items-end justify-between mb-7">
-        <div>
-          <p className="text-[#00D4FF] text-[11px] font-bold uppercase tracking-[0.1em] mb-1.5">Content</p>
-          <h1 className="font-['Barlow_Condensed',sans-serif] text-[32px] font-extrabold text-white uppercase">Projects</h1>
-        </div>
-        <button
-          onClick={() => { setShowForm(true); setEditId(null); setForm(EMPTY_PROJECT); setError('') }}
-          className="px-5 py-2.5 bg-[#00D4FF] rounded-lg text-[#0A0E1A] text-[13px] font-bold cursor-pointer hover:bg-[#00D4FF]/90 transition-colors"
-        >
-          + New Project
-        </button>
-      </div>
+    <div style={{ paddingTop: 40, paddingBottom: 60 }}>
+      <Container>
 
-      {/* Create / Edit Form */}
-      {showForm && (
-        <div className="bg-[#0D1829] border border-[#00D4FF]/20 rounded-xl p-6 mb-6">
-          <h3 className="text-white text-[15px] font-semibold mb-5">
-            {editId ? 'Edit Project' : 'Add New Project'}
-          </h3>
-
-          {error && (
-            <div className="bg-[#EF4444]/10 border border-[#EF4444]/25 rounded-lg px-3.5 py-2.5 mb-4 text-[#EF4444] text-[13px]">
-              {error}
-            </div>
-          )}
-
-          <div className="grid grid-cols-2 gap-4">
-            <FormField label="Title *" value={form.title} onChange={v => setForm(p => ({ ...p, title: v }))} />
-            <FormField label="Tech Stack (comma separated)" value={form.tech_stack as string} onChange={v => setForm(p => ({ ...p, tech_stack: v }))} placeholder="React, Supabase, Tailwind..." />
-            
-            <FormField label="GitHub URL" value={form.github_url || ''} onChange={v => setForm(p => ({ ...p, github_url: v }))} />
-            <FormField label="Live Demo URL" value={form.demo_url || ''} onChange={v => setForm(p => ({ ...p, demo_url: v }))} />
-
-            <div className="col-span-2">
-              <BannerUpload 
-                value={form.banner_url || ''}
-                onChange={url => setForm(p => ({ ...p, banner_url: url }))}
-              />
-            </div>
-
-            <div className="col-span-2">
-              <label className="block text-gray-400 text-[11px] font-semibold uppercase tracking-[0.05em] mb-2 cursor-pointer">Description</label>
-              <textarea 
-                value={form.description || ''}
-                onChange={e => setForm(p => ({ ...p, description: e.target.value }))}
-                rows={4}
-                className="w-full bg-white/5 border border-white/10 rounded-lg p-2.5 text-white text-[13px] resize-y outline-none font-sans focus:border-[#00D4FF]/40"
-              />
-            </div>
-
-            <div className="flex items-center gap-2.5 col-span-2">
-              <input 
-                type="checkbox" 
-                id="is_featured"
-                checked={form.is_featured}
-                onChange={e => setForm(p => ({ ...p, is_featured: e.target.checked }))}
-                className="cursor-pointer"
-              />
-              <label htmlFor="is_featured" className="text-gray-400 text-[13px] cursor-pointer">Featured Project</label>
-            </div>
+        {/* ── Header ── */}
+        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 28 }}>
+          <div>
+            <p style={{ color: '#00D4FF', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>
+              Content
+            </p>
+            <h1 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 32, fontWeight: 800, color: 'white', textTransform: 'uppercase', margin: 0, lineHeight: 1.1 }}>
+              Projects
+            </h1>
           </div>
-
-          <div className="flex gap-2.5 mt-6">
-            <button
-              onClick={handleSave}
-              disabled={saving}
-              className="px-6 py-2.5 bg-[#00D4FF] rounded-lg text-[#0A0E1A] text-[13px] font-bold cursor-pointer transition-colors disabled:opacity-70 disabled:cursor-not-allowed hover:bg-[#00D4FF]/90"
-            >
-              {saving ? 'Saving...' : editId ? 'Update Project' : 'Create Project'}
-            </button>
-            <button
-              onClick={() => { setShowForm(false); setEditId(null); setError('') }}
-              className="px-5 py-2.5 bg-transparent border border-white/10 rounded-lg text-gray-400 text-[13px] cursor-pointer hover:bg-white/5"
-            >
-              Cancel
-            </button>
-          </div>
+          <button
+            onClick={() => { setShowForm(true); setEditId(null); setForm(EMPTY_PROJECT); setError('') }}
+            style={{
+              padding: '10px 20px',
+              background: '#00D4FF',
+              border: 'none',
+              borderRadius: 8,
+              color: '#0A0E1A',
+              fontSize: 13,
+              fontWeight: 700,
+              cursor: 'pointer',
+              flexShrink: 0,
+              whiteSpace: 'nowrap',
+            }}
+          >
+            + New Project
+          </button>
         </div>
-      )}
 
-      {/* Table */}
-      <div className="bg-[#0D1829] border border-white/10 rounded-xl overflow-hidden self-start">
-        {loading ? (
-          <div className="p-12 text-center text-gray-400">Loading projects...</div>
-        ) : projects.length === 0 ? (
-          <div className="p-16 text-center">
-            <p className="text-gray-400 text-[13px] mb-5">No projects found yet.</p>
-            {!showForm && (
-              <button 
-                onClick={() => setShowForm(true)}
-                className="bg-[#00D4FF]/10 border border-[#00D4FF]/20 px-5 py-2 rounded-lg text-[#00D4FF] text-[13px] font-semibold cursor-pointer hover:bg-[#00D4FF]/20"
-              >Add your first project</button>
+        {/* ── Create / Edit Form ── */}
+        {showForm && (
+          <div style={{
+            background: '#0D1829',
+            border: '1px solid rgba(0,212,255,0.2)',
+            borderRadius: 12,
+            padding: 24,
+            marginBottom: 24,
+          }}>
+            <h3 style={{ color: 'white', fontSize: 15, fontWeight: 600, marginBottom: 20, margin: '0 0 20px' }}>
+              {editId ? 'Edit Project' : 'Add New Project'}
+            </h3>
+
+            {error && (
+              <div style={{
+                background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)',
+                borderRadius: 8, padding: '10px 14px', marginBottom: 16,
+                color: '#EF4444', fontSize: 13,
+              }}>
+                {error}
+              </div>
             )}
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="border-b border-white/10">
-                  {['Project', 'Tech Stack', 'Featured', 'Created', 'Actions'].map(h => (
-                    <th key={h} className="p-3 px-4 text-left text-[11px] font-bold text-gray-400 uppercase tracking-[0.05em] whitespace-nowrap">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {projects.map((p: AppProject) => (
-                  <tr key={p.id} className="border-b border-white/10 hover:bg-white/5 transition-colors duration-150">
-                    <td className="p-3 px-4">
-                      <div className="flex items-center gap-3">
-                        {p.banner_url ? (
-                          <img src={p.banner_url} alt="" className="w-10 h-8 rounded-md object-cover shrink-0"/>
-                        ) : (
-                          <div className="w-10 h-8 rounded-md bg-white/5 border border-white/10 shrink-0"/>
-                        )}
-                        <span className="text-white text-[14px] font-medium">{p.title}</span>
-                      </div>
-                    </td>
-                    <td className="p-3 px-4">
-                      <div className="flex gap-1 flex-wrap">
-                        {Array.isArray(p.tech_stack) && p.tech_stack.slice(0, 2).map((t: string) => (
-                          <span key={t} className="text-[10px] px-1.5 py-0.5 rounded bg-[#00D4FF]/10 text-[#00D4FF] border border-[#00D4FF]/10">{t}</span>
-                        ))}
-                        {Array.isArray(p.tech_stack) && p.tech_stack.length > 2 && (
-                          <span className="text-[10px] text-gray-400">+{p.tech_stack.length - 2}</span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="p-3 px-4">
-                      {p.is_featured && <span className="text-[#FF2D9B] text-[10px] font-bold uppercase tracking-[0.05em] bg-[#FF2D9B]/10 px-2 py-0.5 rounded-full border border-[#FF2D9B]/20">Yes</span>}
-                    </td>
-                    <td className="p-3 px-4 text-gray-400 text-[12px] whitespace-nowrap">
-                      {formatDateShort(p.created_at || new Date().toISOString())}
-                    </td>
-                    <td className="p-3 px-4">
-                      <div className="flex gap-2">
-                        <button onClick={() => startEdit(p)} className="px-2.5 py-1 rounded-md bg-white/5 border border-white/10 text-gray-400 text-[11px] cursor-pointer hover:bg-white/10 hover:text-white">Edit</button>
-                        <button onClick={() => p.id && handleDelete(p.id)} className="px-2.5 py-1 rounded-md bg-[#EF4444]/10 border border-[#EF4444]/20 text-[#EF4444] text-[11px] cursor-pointer hover:bg-[#EF4444]/20">Delete</button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+              <FormField label="Title *" value={form.title} onChange={v => setForm(p => ({ ...p, title: v }))} />
+              <FormField
+                label="Tech Stack (comma separated)"
+                value={form.tech_stack as string}
+                onChange={v => setForm(p => ({ ...p, tech_stack: v }))}
+                placeholder="React, Supabase, Tailwind..."
+              />
+              <FormField label="GitHub URL" value={form.github_url || ''} onChange={v => setForm(p => ({ ...p, github_url: v }))} />
+              <FormField label="Live Demo URL" value={form.demo_url || ''} onChange={v => setForm(p => ({ ...p, demo_url: v }))} />
+
+              <div style={{ gridColumn: '1 / -1' }}>
+                <BannerUpload value={form.banner_url || ''} onChange={url => setForm(p => ({ ...p, banner_url: url }))} />
+              </div>
+
+              <div style={{ gridColumn: '1 / -1' }}>
+                <label style={{ display: 'block', color: '#9ca3af', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>
+                  Description
+                </label>
+                <textarea
+                  value={form.description || ''}
+                  onChange={e => setForm(p => ({ ...p, description: e.target.value }))}
+                  rows={4}
+                  style={{
+                    width: '100%', background: 'rgba(255,255,255,0.05)',
+                    border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8,
+                    padding: '10px 12px', color: 'white', fontSize: 13,
+                    resize: 'vertical', outline: 'none', fontFamily: 'sans-serif',
+                    boxSizing: 'border-box',
+                  }}
+                />
+              </div>
+
+              <div style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: 10 }}>
+                <input
+                  type="checkbox"
+                  id="is_featured"
+                  checked={form.is_featured}
+                  onChange={e => setForm(p => ({ ...p, is_featured: e.target.checked }))}
+                  style={{ cursor: 'pointer', width: 16, height: 16 }}
+                />
+                <label htmlFor="is_featured" style={{ color: '#9ca3af', fontSize: 13, cursor: 'pointer' }}>
+                  Featured Project
+                </label>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: 10, marginTop: 24 }}>
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                style={{
+                  padding: '10px 24px', background: '#00D4FF', border: 'none',
+                  borderRadius: 8, color: '#0A0E1A', fontSize: 13, fontWeight: 700,
+                  cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1,
+                }}
+              >
+                {saving ? 'Saving...' : editId ? 'Update Project' : 'Create Project'}
+              </button>
+              <button
+                onClick={() => { setShowForm(false); setEditId(null); setError('') }}
+                style={{
+                  padding: '10px 20px', background: 'transparent',
+                  border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8,
+                  color: '#9ca3af', fontSize: 13, cursor: 'pointer',
+                }}
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         )}
-      </div>
+
+        {/* ── Table ── */}
+        <div style={{
+          background: '#0D1829',
+          border: '1px solid rgba(255,255,255,0.1)',
+          borderRadius: 12,
+          overflow: 'hidden',
+        }}>
+          {loading ? (
+            <div style={{ padding: 48, textAlign: 'center', color: '#9ca3af' }}>Loading projects...</div>
+          ) : projects.length === 0 ? (
+            <div style={{ padding: 64, textAlign: 'center' }}>
+              <p style={{ color: '#9ca3af', fontSize: 13, marginBottom: 20 }}>No projects found yet.</p>
+              {!showForm && (
+                <button
+                  onClick={() => setShowForm(true)}
+                  style={{
+                    background: 'rgba(0,212,255,0.1)', border: '1px solid rgba(0,212,255,0.2)',
+                    padding: '8px 20px', borderRadius: 8, color: '#00D4FF',
+                    fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                  }}
+                >
+                  Add your first project
+                </button>
+              )}
+            </div>
+          ) : (
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                    {['Project', 'Tech Stack', 'Featured', 'Created', 'Actions'].map(h => (
+                      <th key={h} style={{
+                        padding: '12px 16px',
+                        textAlign: 'left',
+                        fontSize: 11,
+                        fontWeight: 700,
+                        color: '#9ca3af',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.05em',
+                        whiteSpace: 'nowrap',
+                      }}>
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {projects.map((p: AppProject) => (
+                    <tr
+                      key={p.id}
+                      style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', transition: 'background 0.15s' }}
+                      className="hover:bg-white/5"
+                    >
+                      {/* Project */}
+                      <td style={{ padding: '12px 16px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                          {p.banner_url ? (
+                            <img src={p.banner_url} alt="" style={{ width: 40, height: 32, borderRadius: 6, objectFit: 'cover', flexShrink: 0 }} />
+                          ) : (
+                            <div style={{ width: 40, height: 32, borderRadius: 6, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', flexShrink: 0 }} />
+                          )}
+                          <span style={{ color: 'white', fontSize: 14, fontWeight: 500 }}>{p.title}</span>
+                        </div>
+                      </td>
+
+                      {/* Tech Stack */}
+                      <td style={{ padding: '12px 16px' }}>
+                        <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                          {Array.isArray(p.tech_stack) && p.tech_stack.slice(0, 2).map((t: string) => (
+                            <span key={t} style={{
+                              fontSize: 10, padding: '2px 6px', borderRadius: 4,
+                              background: 'rgba(0,212,255,0.1)', color: '#00D4FF',
+                              border: '1px solid rgba(0,212,255,0.15)',
+                            }}>
+                              {t}
+                            </span>
+                          ))}
+                          {Array.isArray(p.tech_stack) && p.tech_stack.length > 2 && (
+                            <span style={{ fontSize: 10, color: '#9ca3af' }}>+{p.tech_stack.length - 2}</span>
+                          )}
+                        </div>
+                      </td>
+
+                      {/* Featured */}
+                      <td style={{ padding: '12px 16px' }}>
+                        {p.is_featured && (
+                          <span style={{
+                            fontSize: 10, fontWeight: 700, textTransform: 'uppercase',
+                            letterSpacing: '0.05em', padding: '2px 8px', borderRadius: 999,
+                            background: 'rgba(255,45,155,0.1)', color: '#FF2D9B',
+                            border: '1px solid rgba(255,45,155,0.2)',
+                          }}>
+                            Yes
+                          </span>
+                        )}
+                      </td>
+
+                      {/* Created */}
+                      <td style={{ padding: '12px 16px', color: '#9ca3af', fontSize: 12, whiteSpace: 'nowrap' }}>
+                        {formatDateShort(p.created_at || new Date().toISOString())}
+                      </td>
+
+                      {/* Actions */}
+                      <td style={{ padding: '12px 16px' }}>
+                        <div style={{ display: 'flex', gap: 8 }}>
+                          <button
+                            onClick={() => startEdit(p)}
+                            style={{
+                              padding: '4px 10px', borderRadius: 6,
+                              background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+                              color: '#9ca3af', fontSize: 11, cursor: 'pointer',
+                            }}
+                            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = 'white' }}
+                            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = '#9ca3af' }}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => p.id && handleDelete(p.id)}
+                            style={{
+                              padding: '4px 10px', borderRadius: 6,
+                              background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)',
+                              color: '#EF4444', fontSize: 11, cursor: 'pointer',
+                            }}
+                            onMouseEnter={e => (e.currentTarget.style.background = 'rgba(239,68,68,0.2)')}
+                            onMouseLeave={e => (e.currentTarget.style.background = 'rgba(239,68,68,0.1)')}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+      </Container>
     </div>
   )
 }
 
-/* Banner Upload Component */
+/* ── Banner Upload ── */
 function BannerUpload({ value, onChange }: { value: string, onChange: (v: string) => void }) {
   const fileRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
@@ -267,11 +398,9 @@ function BannerUpload({ value, onChange }: { value: string, onChange: (v: string
 
     try {
       const signRes = await fetch(`${import.meta.env.VITE_API_URL}/api/upload/sign`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
       })
       if (!signRes.ok) throw new Error(`Sign request failed with status: ${signRes.status}`)
-      
       const { signature, timestamp, api_key, cloud_name } = await signRes.json()
 
       const formData = new FormData()
@@ -280,19 +409,11 @@ function BannerUpload({ value, onChange }: { value: string, onChange: (v: string
       formData.append('signature', signature)
       formData.append('api_key', api_key)
 
-      const uploadRes = await fetch(
-        `https://api.cloudinary.com/v1_1/${cloud_name}/image/upload`,
-        { method: 'POST', body: formData }
-      )
-      
+      const uploadRes = await fetch(`https://api.cloudinary.com/v1_1/${cloud_name}/image/upload`, { method: 'POST', body: formData })
       if (!uploadRes.ok) throw new Error('Cloudinary upload failed')
-
       const result = await uploadRes.json()
-      if (result.secure_url) {
-        onChange(result.secure_url)
-      } else {
-        throw new Error('No secure_url returned from Cloudinary')
-      }
+      if (result.secure_url) { onChange(result.secure_url) }
+      else throw new Error('No secure_url returned from Cloudinary')
     } catch (err: any) {
       setError(`Upload failed: ${err.message}`)
     } finally {
@@ -302,37 +423,71 @@ function BannerUpload({ value, onChange }: { value: string, onChange: (v: string
 
   return (
     <div>
-      <label className="block text-gray-400 text-[11px] font-bold uppercase tracking-[0.05em] mb-2">Project Banner</label>
-      <div className="border border-dashed border-white/20 rounded-xl p-5 text-center transition-colors hover:border-[#00D4FF]/40">
+      <label style={{ display: 'block', color: '#9ca3af', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>
+        Project Banner
+      </label>
+      <div
+        style={{
+          border: '1px dashed rgba(255,255,255,0.2)', borderRadius: 12,
+          padding: 20, textAlign: 'center', transition: 'border-color 0.2s',
+        }}
+        onMouseEnter={e => (e.currentTarget.style.borderColor = 'rgba(0,212,255,0.4)')}
+        onMouseLeave={e => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)')}
+      >
         {value ? (
-          <div className="relative w-fit mx-auto">
-            <img src={value} alt="" className="h-[120px] rounded-lg object-cover"/>
-            <button onClick={() => onChange('')} className="absolute -top-2.5 -right-2.5 w-6 h-6 rounded-full bg-[#EF4444] border-none text-white cursor-pointer flex items-center justify-center hover:bg-[#dc2626]">×</button>
+          <div style={{ position: 'relative', width: 'fit-content', margin: '0 auto' }}>
+            <img src={value} alt="" style={{ height: 120, borderRadius: 8, objectFit: 'cover' }} />
+            <button
+              onClick={() => onChange('')}
+              style={{
+                position: 'absolute', top: -10, right: -10,
+                width: 24, height: 24, borderRadius: '50%',
+                background: '#EF4444', border: 'none', color: 'white',
+                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 16, lineHeight: 1,
+              }}
+            >×</button>
           </div>
         ) : (
-          <div onClick={() => !uploading && fileRef.current?.click()} className={`${uploading ? 'cursor-wait opacity-70' : 'cursor-pointer'}`}>
-            <div className="text-[24px] text-gray-400 mb-2">
-              {uploading ? (
-                <div className="w-5 h-5 mx-auto rounded-full border-2 border-gray-400/30 border-t-gray-400 animate-spin"/>
-              ) : '+'}
+          <div
+            onClick={() => !uploading && fileRef.current?.click()}
+            style={{ cursor: uploading ? 'wait' : 'pointer', opacity: uploading ? 0.7 : 1 }}
+          >
+            <div style={{ fontSize: 24, color: '#9ca3af', marginBottom: 8 }}>
+              {uploading
+                ? <div style={{ width: 20, height: 20, margin: '0 auto', borderRadius: '50%', border: '2px solid rgba(156,163,175,0.3)', borderTopColor: '#9ca3af', animation: 'spin 0.8s linear infinite' }} />
+                : '+'}
             </div>
-            <p className="text-gray-400 text-[13px]">{uploading ? 'Uploading...' : 'Click to upload banner'}</p>
+            <p style={{ color: '#9ca3af', fontSize: 13, margin: 0 }}>{uploading ? 'Uploading...' : 'Click to upload banner'}</p>
           </div>
         )}
         <input ref={fileRef} type="file" hidden onChange={handleFile} accept="image/*" />
       </div>
-      {error && <p className="text-[#EF4444] text-[11px] mt-1">{error}</p>}
+      {error && <p style={{ color: '#EF4444', fontSize: 11, marginTop: 4 }}>{error}</p>}
     </div>
   )
 }
 
-function FormField({ label, value, onChange, placeholder = '' }: { label: string, value: string, onChange: (v: string) => void, placeholder?: string }) {
+/* ── Form Field ── */
+function FormField({ label, value, onChange, placeholder = '' }: {
+  label: string, value: string, onChange: (v: string) => void, placeholder?: string
+}) {
   return (
     <div>
-      <label className="block text-gray-400 text-[11px] font-bold uppercase tracking-[0.05em] mb-2">{label}</label>
-      <input 
-        type="text" value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}
-        className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-[13px] outline-none placeholder:text-gray-600 focus:border-[#00D4FF]/40 transition-colors"
+      <label style={{ display: 'block', color: '#9ca3af', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>
+        {label}
+      </label>
+      <input
+        type="text"
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        placeholder={placeholder}
+        style={{
+          width: '100%', background: 'rgba(255,255,255,0.05)',
+          border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8,
+          padding: '8px 12px', color: 'white', fontSize: 13,
+          outline: 'none', boxSizing: 'border-box',
+        }}
       />
     </div>
   )

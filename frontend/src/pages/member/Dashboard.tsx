@@ -71,20 +71,20 @@ export default function Dashboard() {
           label="Events joined"
           value={loading ? '—' : registrations.length}
           color="var(--cyan)"
-          icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>}
+          icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>}
         />
         <StatCard
           label="Upcoming"
           value={loading ? '—' : upcoming.length}
           color="var(--pink)"
-          icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>}
+          icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>}
         />
         <StatCard
           label="Member ID"
           value={profile?.member_id || '—'}
           color="#A78BFA"
           mono
-          icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>}
+          icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="5" width="20" height="14" rx="2" /><line x1="2" y1="10" x2="22" y2="10" /></svg>}
         />
       </div>
 
@@ -111,7 +111,7 @@ export default function Dashboard() {
               {upcoming.slice(0, 4).map((reg: any) => (
                 <div key={reg.id} style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 10, padding: '12px 14px', display: 'flex', gap: 12, alignItems: 'flex-start' }}>
                   {/* Type dot */}
-                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: TYPE_COLOR[reg.events?.type] || 'var(--cyan)', marginTop: 4, flexShrink: 0 }}/>
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: TYPE_COLOR[reg.events?.type] || 'var(--cyan)', marginTop: 4, flexShrink: 0 }} />
                   <div style={{ flex: 1, overflow: 'hidden' }}>
                     <p style={{ color: '#fff', fontSize: 13, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: 3 }}>
                       {reg.events?.title}
@@ -238,8 +238,8 @@ function Skeleton() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
       {[1, 2, 3].map(i => (
         <div key={i} style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 10, padding: '14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <div style={{ height: 12, borderRadius: 4, background: 'rgba(255,255,255,0.05)', width: '70%' }}/>
-          <div style={{ height: 10, borderRadius: 4, background: 'rgba(255,255,255,0.03)', width: '45%' }}/>
+          <div style={{ height: 12, borderRadius: 4, background: 'rgba(255,255,255,0.05)', width: '70%' }} />
+          <div style={{ height: 10, borderRadius: 4, background: 'rgba(255,255,255,0.03)', width: '45%' }} />
         </div>
       ))}
     </div>

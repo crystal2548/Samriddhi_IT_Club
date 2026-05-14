@@ -16,8 +16,8 @@ export default function OCLayout() {
         supabase.from('permission_requests').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
         supabase.from('contact_messages').select('id', { count: 'exact', head: true }),
       ])
-      setBadges({ 
-        applications: appsRes.count || 0, 
+      setBadges({
+        applications: appsRes.count || 0,
         permissions: permsRes.count || 0,
         messages: contactRes.count || 0
       })
@@ -36,7 +36,7 @@ export default function OCLayout() {
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         <header style={{ height: 56, background: '#07090F', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 24px', flexShrink: 0, position: 'sticky', top: 0, zIndex: 40 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--cyan)' }}/>
+            <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--cyan)' }} />
             <span style={{ fontSize: 12, color: 'var(--text-muted)', fontFamily: 'JetBrains Mono, monospace' }}>OC Control Panel</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
@@ -49,7 +49,7 @@ export default function OCLayout() {
               onMouseEnter={e => { e.currentTarget.style.color = '#EF4444'; e.currentTarget.style.background = 'rgba(239,68,68,0.08)' }}
               onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.background = 'none' }}
             >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
               Sign out
             </button>
           </div>

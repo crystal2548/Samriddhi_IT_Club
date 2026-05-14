@@ -11,6 +11,8 @@ interface Profile {
   bio: string | null
   github_url: string | null
   linkedin_url: string | null
+  skills: string[] | null
+  college_year: number | null
 }
 
 const DEPARTMENTS = ['All', 'Development', 'Design', 'Media', 'Operations']
@@ -248,6 +250,7 @@ function MemberCard({ member, delay, onClick }: { member: Profile; delay: number
 }
 
 // ── Detail panel (click to open) ──────────────────────────────────────────────
+// ── Detail panel (centered modal) ──────────────────────────────────────────────
 function DetailPanel({ member, onClose }: { member: Profile | null; onClose: () => void }) {
   const pal = member ? getPalette(member) : ROLE_PALETTE.default
   const visible = !!member
@@ -261,136 +264,117 @@ function DetailPanel({ member, onClose }: { member: Profile | null; onClose: () 
     <>
       {/* Backdrop */}
       <div onClick={onClose} style={{
-        position: 'fixed', inset: 0, zIndex: 100,
-        background: 'rgba(2,5,14,0.85)', backdropFilter: 'blur(8px)',
+        position: 'fixed', inset: 0, zIndex: 1000,
+        background: 'rgba(2,5,14,0.92)', backdropFilter: 'blur(12px)',
         opacity: visible ? 1 : 0, pointerEvents: visible ? 'auto' : 'none',
-        transition: 'opacity 0.3s ease',
+        transition: 'opacity 0.4s ease',
       }} />
 
-      {/* Panel */}
+      {/* Modal Container */}
       <div style={{
-        position: 'fixed', top: 0, right: 0, bottom: 0, zIndex: 101,
-        width: 'min(520px, 100vw)',
-        background: 'rgba(4,8,16,0.98)',
-        borderLeft: `1px solid ${pal.primary}33`,
-        transform: visible ? 'translateX(0)' : 'translateX(100%)',
-        transition: 'transform 0.4s cubic-bezier(0.16,1,0.3,1)',
+        position: 'fixed', top: '50%', left: '50%', zIndex: 1001,
+        width: 'min(640px, 92vw)',
+        maxHeight: 'min(820px, 90vh)',
+        background: '#060a14',
+        border: `1px solid ${pal.primary}44`,
+        borderRadius: 16,
+        transform: visible ? 'translate(-50%, -50%) scale(1)' : 'translate(-50%, -45%) scale(0.96)',
+        opacity: visible ? 1 : 0,
+        pointerEvents: visible ? 'auto' : 'none',
+        transition: 'all 0.4s cubic-bezier(0.16,1,0.3,1)',
         display: 'flex', flexDirection: 'column',
         overflow: 'hidden',
+        boxShadow: `0 30px 100px rgba(0,0,0,0.8), 0 0 0 1px ${pal.primary}11`,
       }}>
         {member && (
           <>
-            {/* Photo half */}
-            <div style={{ position: 'relative', height: '45%', flexShrink: 0, overflow: 'hidden' }}>
-              {member.photo_url ? (
-                <img src={member.photo_url} alt={member.full_name} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center', filter: 'brightness(0.55) saturate(0.9)' }} />
-              ) : (
-                <div style={{ width: '100%', height: '100%', background: `linear-gradient(135deg, ${pal.dim}, rgba(4,8,16,0.98))`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 72, fontWeight: 900, color: pal.primary }}>{getInitials(member.full_name)}</div>
-              )}
-
-              {/* Ghost name watermark */}
-              <div style={{
-                position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 'clamp(32px, 8vw, 72px)', fontWeight: 900, color: 'rgba(255,255,255,0.04)',
-                letterSpacing: '-0.04em', textTransform: 'uppercase', lineHeight: 1, textAlign: 'center', padding: '0 16px',
-                userSelect: 'none', pointerEvents: 'none',
-              }}>
-                {member.full_name}
+            <div style={{ position: 'relative', flex: 1, display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
+              
+              {/* Top Photo & Identity Section */}
+              <div style={{ position: 'relative', height: 380, flexShrink: 0, background: '#040810', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                {member.photo_url ? (
+                  <>
+                    <img src={member.photo_url} alt={member.full_name} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', zIndex: 2, position: 'relative' }} />
+                    <img src={member.photo_url} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', filter: 'blur(30px) brightness(0.2)', opacity: 0.4, zIndex: 1 }} />
+                  </>
+                ) : (
+                  <div style={{ width: '100%', height: '100%', background: `linear-gradient(135deg, ${pal.dim}, #0a0d14)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 72, fontWeight: 900, color: pal.primary }}>{getInitials(member.full_name)}</div>
+                )}
+                
+                {/* Close Button */}
+                <button onClick={onClose} style={{
+                  position: 'absolute', top: 16, right: 16, width: 36, height: 36, borderRadius: 10,
+                  background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)',
+                  color: 'white', fontSize: 18, cursor: 'pointer', zIndex: 50,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s', backdropFilter: 'blur(8px)'
+                }} onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'} onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}>✕</button>
               </div>
 
-              {/* Bottom fade */}
-              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '50%', background: 'linear-gradient(to top, rgba(4,8,16,0.98), transparent)' }} />
-
-              {/* Close button */}
-              <button onClick={onClose} style={{
-                position: 'absolute', top: 16, right: 16,
-                width: 36, height: 36, borderRadius: 8,
-                background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)',
-                color: 'white', fontSize: 16, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontFamily: 'monospace', transition: 'all 0.2s',
-              }}
-                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.15)' }}
-                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)' }}
-              >✕</button>
-
-              {/* HUD corners on photo */}
-              <Corners color={pal.primary + '88'} />
-            </div>
-
-            {/* Info half */}
-            <div style={{ flex: 1, overflow: 'auto', padding: '28px 32px 36px' }}>
-              {/* Label */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                <div style={{ width: 6, height: 6, borderRadius: 1, background: pal.primary }} />
-                <span style={{ fontFamily: "'Space Mono',monospace", fontSize: 9, color: pal.primary, letterSpacing: '0.22em', textTransform: 'uppercase' }}>
-                  {getDept(member.oc_position)}
-                </span>
+              {/* Identity Header */}
+              <div style={{ padding: '24px 32px 10px', textAlign: 'center', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 12px', borderRadius: 100, background: pal.dim, border: `1px solid ${pal.primary}33`, marginBottom: 12 }}>
+                  <div style={{ width: 5, height: 5, borderRadius: '50%', background: pal.primary }} />
+                  <span style={{ fontFamily: "'Space Mono',monospace", fontSize: 9, color: pal.primary, fontWeight: 700, letterSpacing: '0.1em' }}>{getDept(member.oc_position).toUpperCase()}</span>
+                </div>
+                <h2 style={{ color: 'white', fontWeight: 900, fontSize: 'clamp(28px, 5vw, 38px)', letterSpacing: '-0.03em', margin: 0, textTransform: 'uppercase', lineHeight: 1 }}>{member.full_name}</h2>
               </div>
 
-              {/* Name */}
-              <h2 style={{ color: 'white', fontWeight: 900, fontSize: 'clamp(28px,5vw,44px)', lineHeight: 0.95, letterSpacing: '-0.03em', margin: '0 0 22px', textTransform: 'uppercase' }}>
-                {member.full_name}
-              </h2>
-
-              {/* Role box */}
-              <div style={{
-                background: pal.dim, border: `1px solid ${pal.primary}33`,
-                borderRadius: 6, padding: '14px 18px', marginBottom: 24,
-              }}>
-                <div style={{ fontFamily: "'Space Mono',monospace", fontSize: 9, color: 'rgba(255,255,255,0.4)', letterSpacing: '0.18em', marginBottom: 6 }}>[ OPERATIONAL ROLE ]</div>
-                <div style={{ color: 'white', fontWeight: 800, fontSize: 18, letterSpacing: '-0.01em', textTransform: 'uppercase' }}>
-                  {fmtRole(member.oc_position, member.role)}
+              {/* Content Section */}
+              <div style={{ padding: '30px 40px 40px' }}>
+                {/* Role Highlight */}
+                <div style={{ textAlign: 'center', marginBottom: 28 }}>
+                  <div style={{ fontFamily: "'Space Mono',monospace", fontSize: 10, color: 'rgba(255,255,255,0.4)', letterSpacing: '0.2em', marginBottom: 8 }}>POSITION / STATUS</div>
+                  <div style={{ color: pal.primary, fontWeight: 800, fontSize: 22, textTransform: 'uppercase', letterSpacing: '0.02em' }}>{fmtRole(member.oc_position, member.role)}</div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginTop: 6 }}>
+                    <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12 }}>{member.role === 'executive' ? 'Executive Committee' : 'Organizing Committee'}</span>
+                    {member.college_year && (
+                      <>
+                        <div style={{ width: 4, height: 4, borderRadius: '50%', background: 'rgba(255,255,255,0.1)' }} />
+                        <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: 11, fontWeight: 600 }}>YEAR {member.college_year}</span>
+                      </>
+                    )}
+                  </div>
                 </div>
-                <div style={{ fontFamily: "'Space Mono',monospace", fontSize: 9, color: pal.primary, letterSpacing: '0.14em', marginTop: 4, textTransform: 'uppercase' }}>
-                  {member.role === 'executive' ? 'Executive Committee' : 'Organizing Committee'}
-                </div>
-              </div>
 
-              {/* Bio */}
-              {member.bio && (
-                <div style={{ marginBottom: 24 }}>
-                  <div style={{ fontFamily: "'Space Mono',monospace", fontSize: 9, color: 'rgba(255,255,255,0.35)', letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 10 }}>ROLE SNAPSHOT</div>
-                  <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: 13, lineHeight: 1.75 }}>{member.bio}</p>
-                </div>
-              )}
+                {/* Skills Section */}
+                {member.skills && member.skills.length > 0 && (
+                  <div style={{ marginBottom: 28, textAlign: 'center' }}>
+                    <div style={{ fontFamily: "'Space Mono',monospace", fontSize: 9, color: 'rgba(255,255,255,0.3)', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 12 }}>TECH STACK & SKILLS</div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 8 }}>
+                      {member.skills.map((s, i) => (
+                        <span key={i} style={{ padding: '4px 12px', borderRadius: 100, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.7)', fontSize: 11, fontWeight: 500 }}>
+                          {s}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
-              {/* Links */}
-              {(member.github_url || member.linkedin_url) && (
-                <div style={{ display: 'flex', gap: 10 }}>
+                {/* Bio Section */}
+                {member.bio && (
+                  <div style={{ padding: '24px', background: 'rgba(255,255,255,0.02)', borderRadius: 12, border: '1px solid rgba(255,255,255,0.05)', marginBottom: 32 }}>
+                    <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: 14, lineHeight: 1.8, textAlign: 'center', fontStyle: 'italic', margin: 0 }}>"{member.bio}"</p>
+                  </div>
+                )}
+
+                {/* Social Links */}
+                <div style={{ display: 'flex', justifyContent: 'center', gap: 16 }}>
                   {member.github_url && (
-                    <a href={member.github_url} target="_blank" rel="noopener noreferrer" style={{
-                      display: 'flex', alignItems: 'center', gap: 7, padding: '8px 14px', borderRadius: 8,
-                      background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)',
-                      color: 'rgba(255,255,255,0.6)', fontSize: 12, fontWeight: 500, textDecoration: 'none',
-                      transition: 'all 0.2s',
-                    }}
-                      onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.color = 'white' }}
-                      onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.color = 'rgba(255,255,255,0.6)' }}
-                    >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
-                      GitHub
+                    <a href={member.github_url} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 24px', borderRadius: 12, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', fontSize: 13, fontWeight: 600, textDecoration: 'none', transition: 'all 0.2s' }} onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'} onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg> GitHub
                     </a>
                   )}
                   {member.linkedin_url && (
-                    <a href={member.linkedin_url} target="_blank" rel="noopener noreferrer" style={{
-                      display: 'flex', alignItems: 'center', gap: 7, padding: '8px 14px', borderRadius: 8,
-                      background: `${pal.dim}`, border: `1px solid ${pal.primary}33`,
-                      color: pal.primary, fontSize: 12, fontWeight: 500, textDecoration: 'none',
-                      transition: 'all 0.2s',
-                    }}
-                      onMouseEnter={e => { e.currentTarget.style.background = pal.glow.replace('0.3', '0.15') }}
-                      onMouseLeave={e => { e.currentTarget.style.background = pal.dim }}
-                    >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
-                      LinkedIn
+                    <a href={member.linkedin_url} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 24px', borderRadius: 12, background: pal.dim, border: `1px solid ${pal.primary}44`, color: pal.primary, fontSize: 13, fontWeight: 600, textDecoration: 'none', transition: 'all 0.2s' }} onMouseEnter={e => e.currentTarget.style.background = pal.primary + '22'} onMouseLeave={e => e.currentTarget.style.background = pal.dim}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg> LinkedIn
                     </a>
                   )}
                 </div>
-              )}
+              </div>
             </div>
-
-            {/* Bottom accent bar */}
-            <div style={{ height: 3, background: `linear-gradient(90deg, ${pal.primary}, ${pal.primary}00)`, flexShrink: 0 }} />
+            
+            {/* Base Accent */}
+            <div style={{ height: 4, background: `linear-gradient(90deg, transparent, ${pal.primary}, transparent)`, flexShrink: 0 }} />
           </>
         )}
       </div>

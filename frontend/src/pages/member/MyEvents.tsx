@@ -39,7 +39,7 @@ export default function MyEvents() {
         .select('*, events(id, title, type, description, event_date, location, status, banner_url, max_participants)')
         .eq('member_id', user.id)
         .order('registered_at', { ascending: false })
-      
+
       if (error) throw error
       return (data as unknown as Registration[]) || []
     },
@@ -63,21 +63,21 @@ export default function MyEvents() {
 
   const TYPE_COLOR: Record<string, string> = {
     hackathon: 'var(--cyan)',
-    workshop:  'var(--pink)',
-    seminar:   '#00BFA5',
-    bootcamp:  '#A78BFA',
-    social:    '#F59E0B',
-    fest:      'var(--pink)',
+    workshop: 'var(--pink)',
+    seminar: '#00BFA5',
+    bootcamp: '#A78BFA',
+    social: '#F59E0B',
+    fest: 'var(--pink)',
   }
 
   const STATUS_CONFIG: Record<string, { label: string, bg: string, color: string, border: string }> = {
-    upcoming:  { label: 'Upcoming',  bg: 'rgba(16,185,129,0.1)',  color: '#10B981', border: 'rgba(16,185,129,0.25)' },
-    ongoing:   { label: 'Ongoing',   bg: 'rgba(245,158,11,0.1)', color: '#F59E0B', border: 'rgba(245,158,11,0.25)' },
+    upcoming: { label: 'Upcoming', bg: 'rgba(16,185,129,0.1)', color: '#10B981', border: 'rgba(16,185,129,0.25)' },
+    ongoing: { label: 'Ongoing', bg: 'rgba(245,158,11,0.1)', color: '#F59E0B', border: 'rgba(245,158,11,0.25)' },
     completed: { label: 'Completed', bg: 'rgba(107,114,128,0.15)', color: '#9CA3AF', border: 'rgba(107,114,128,0.25)' },
-    cancelled: { label: 'Cancelled', bg: 'rgba(239,68,68,0.1)',  color: '#EF4444', border: 'rgba(239,68,68,0.25)' },
+    cancelled: { label: 'Cancelled', bg: 'rgba(239,68,68,0.1)', color: '#EF4444', border: 'rgba(239,68,68,0.25)' },
   }
 
-  const upcomingCount = registrations.filter(r => ['upcoming','ongoing'].includes(r.events?.status)).length
+  const upcomingCount = registrations.filter(r => ['upcoming', 'ongoing'].includes(r.events?.status)).length
   const pastCount = registrations.filter(r => r.events?.status === 'completed').length
 
   return (
@@ -100,8 +100,8 @@ export default function MyEvents() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14, marginBottom: 28 }}>
         {[
           { label: 'Total registered', value: registrations.length, color: 'var(--cyan)' },
-          { label: 'Upcoming',         value: upcomingCount,         color: 'var(--pink)' },
-          { label: 'Attended',         value: pastCount,             color: '#A78BFA' },
+          { label: 'Upcoming', value: upcomingCount, color: 'var(--pink)' },
+          { label: 'Attended', value: pastCount, color: '#A78BFA' },
         ].map((s, i) => (
           <div key={i} style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 10, padding: '16px 18px' }}>
             <p style={{ color: 'var(--text-muted)', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>{s.label}</p>
@@ -115,9 +115,9 @@ export default function MyEvents() {
       {/* ── Filter tabs ──────────────────────────────── */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
         {[
-          { value: 'all',      label: `All (${registrations.length})` },
+          { value: 'all', label: `All (${registrations.length})` },
           { value: 'upcoming', label: `Upcoming (${upcomingCount})` },
-          { value: 'past',     label: `Past (${pastCount})` },
+          { value: 'past', label: `Past (${pastCount})` },
         ].map(f => (
           <button key={f.value} onClick={() => setFilter(f.value)}
             style={{ padding: '7px 16px', borderRadius: 20, fontSize: 12, fontWeight: 500, cursor: 'pointer', transition: 'all 0.15s', background: filter === f.value ? 'rgba(0,212,255,0.1)' : 'transparent', color: filter === f.value ? 'var(--cyan)' : 'var(--text-muted)', border: `1px solid ${filter === f.value ? 'rgba(0,212,255,0.3)' : 'var(--border)'}` }}>
@@ -127,7 +127,7 @@ export default function MyEvents() {
 
         {/* Browse events link */}
         <Link to="/events" style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 5, padding: '7px 16px', borderRadius: 20, fontSize: 12, fontWeight: 500, color: 'var(--cyan)', border: '1px solid rgba(0,212,255,0.2)', background: 'rgba(0,212,255,0.06)', textDecoration: 'none' }}>
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" /></svg>
           Browse events
         </Link>
       </div>
@@ -136,13 +136,13 @@ export default function MyEvents() {
       {loading ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {[1, 2, 3].map(i => (
-            <div key={i} style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, height: 100 }}/>
+            <div key={i} style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, height: 100 }} />
           ))}
         </div>
       ) : filtered.length === 0 ? (
         <div style={{ background: 'var(--bg-card)', border: '1px dashed var(--border)', borderRadius: 14, padding: '60px 24px', textAlign: 'center' }}>
           <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="1.5" style={{ margin: '0 auto 14px', display: 'block' }}>
-            <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+            <rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
           </svg>
           <p style={{ color: 'var(--text-secondary)', fontSize: 14, fontWeight: 500, marginBottom: 6 }}>
             {filter === 'upcoming' ? 'No upcoming events' : filter === 'past' ? 'No past events' : 'No registered events yet'}
@@ -168,15 +168,15 @@ export default function MyEvents() {
                 onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
               >
                 {/* Banner strip */}
-                <div style={{ width: 6, flexShrink: 0, background: TYPE_COLOR[event.type] || 'var(--cyan)' }}/>
+                <div style={{ width: 6, flexShrink: 0, background: TYPE_COLOR[event.type] || 'var(--cyan)' }} />
 
                 {/* Event banner thumbnail */}
                 <div style={{ width: 100, flexShrink: 0, background: 'linear-gradient(135deg, #0D1829, #142040)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
                   {event.banner_url ? (
-                    <img src={event.banner_url} alt={event.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }}/>
+                    <img src={event.banner_url} alt={event.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   ) : (
                     <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgba(0,212,255,0.15)" strokeWidth="1">
-                      <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                      <rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
                     </svg>
                   )}
                 </div>
@@ -200,13 +200,13 @@ export default function MyEvents() {
                     <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
                       {event.event_date && (
                         <span style={{ color: 'var(--text-muted)', fontSize: 12, display: 'flex', alignItems: 'center', gap: 4 }}>
-                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
                           {formatDateTime(event.event_date)}
                         </span>
                       )}
                       {event.location && (
                         <span style={{ color: 'var(--text-muted)', fontSize: 12, display: 'flex', alignItems: 'center', gap: 4 }}>
-                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></svg>
                           {event.location}
                         </span>
                       )}
