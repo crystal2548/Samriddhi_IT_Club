@@ -841,13 +841,10 @@ function HeroVisual({ settings }: { settings: any }) {
       ctx.beginPath(); ctx.arc(cx, cy, coreR - 10, 0, Math.PI*2)
       ctx.strokeStyle = 'rgba(0,212,255,0.07)'
       ctx.lineWidth = 1; ctx.stroke()
-      // Fill sphere
-      const sphereFill = ctx.createRadialGradient(cx - 24, cy - 24, 0, cx, cy, coreR)
-      sphereFill.addColorStop(0, 'rgba(0,60,90,0.8)')
-      sphereFill.addColorStop(0.5, 'rgba(4,10,22,0.95)')
-      sphereFill.addColorStop(1, 'rgba(2,5,14,0.98)')
+      // Fill sphere (solid black to match the logo image background and hide the rectangle boundary)
       ctx.beginPath(); ctx.arc(cx, cy, coreR - 1, 0, Math.PI*2)
-      ctx.fillStyle = sphereFill; ctx.fill()
+      ctx.fillStyle = '#000000'
+      ctx.fill()
 
       rafRef.current = requestAnimationFrame(draw)
     }

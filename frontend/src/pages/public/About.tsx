@@ -1,22 +1,6 @@
-import { useEffect, useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { supabase } from '../../utils/supabase'
 import { useSiteSettings } from '../../context/SiteContext'
-
-interface Profile {
-  id: string
-  full_name: string
-  photo_url: string | null
-  oc_position: string | null
-  bio: string | null
-  github_url: string | null
-  linkedin_url: string | null
-}
-
-function getInitials(name: string | null) {
-  if (!name) return 'A'
-  return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
-}
 
 const VALUES = [
   {
@@ -169,50 +153,6 @@ function ValueCard({ v, delay }: { v: typeof VALUES[0]; delay: number }) {
   )
 }
 
-// ── Team card: Compact & Elegant ─────────────────────────────────────────────
-function TeamCard({ member, delay }: { member: Profile; delay: number }) {
-  const [hovered, setHovered] = useState(false)
-  return (
-    <Reveal delay={delay}>
-      <div
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
-        style={{
-          background: 'rgba(255,255,255,0.01)',
-          border: `1px solid ${hovered ? 'rgba(0,212,255,0.2)' : 'rgba(255,255,255,0.05)'}`,
-          borderRadius: 14, overflow: 'hidden',
-          transition: 'all 0.3s ease',
-          transform: hovered ? 'translateY(-4px)' : 'none',
-        }}
-      >
-        <div style={{ position: 'relative', paddingBottom: '110%', background: '#0a0d14', overflow: 'hidden' }}>
-          {member.photo_url ? (
-            <img src={member.photo_url} alt={member.full_name} style={{
-              position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover',
-              transform: hovered ? 'scale(1.05)' : 'scale(1)',
-              transition: 'transform 0.5s ease',
-              filter: hovered ? 'grayscale(0)' : 'grayscale(0.2)',
-            }} />
-          ) : (
-            <div style={{
-              position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: `linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01))`,
-              fontSize: 24, fontWeight: 700, color: 'rgba(255,255,255,0.2)',
-            }}>{getInitials(member.full_name)}</div>
-          )}
-          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '50%', background: 'linear-gradient(to top, #040810, transparent)' }} />
-          
-          <div style={{ position: 'absolute', bottom: 12, left: 12, right: 12, textAlign: 'left' }}>
-            <h4 style={{ color: 'white', fontWeight: 700, fontSize: 13, margin: 0, lineHeight: 1.2 }}>{member.full_name}</h4>
-            <span style={{ color: '#00D4FF', fontSize: 9, fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase', opacity: 0.8 }}>
-              {member.oc_position?.replace(/_/g, ' ')}
-            </span>
-          </div>
-        </div>
-      </div>
-    </Reveal>
-  )
-}
 
 // ── Main component ────────────────────────────────────────────────────────────
 export default function About() {

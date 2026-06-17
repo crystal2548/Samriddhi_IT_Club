@@ -151,36 +151,74 @@ export default function Resources() {
         </div>
 
         {/* ── GUIDED LEARNING PATHS ─────────────────────── */}
-        <section style={{ marginTop: 100 }}>
-          <div style={{ marginBottom: 32 }}>
-            <p style={{ color: 'var(--pink)', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>Curated Paths</p>
-            <h2 style={{ fontFamily: 'Barlow Condensed, sans-serif', fontSize: 28, fontWeight: 800, color: '#fff', textTransform: 'uppercase' }}>Guided Learning Paths</h2>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 24 }}>
-             <PathCard 
-               title="Frontend Engineering" 
-               desc="Master the modern web with React, TypeScript, and Advanced CSS."
-               steps={['JS Fundamentals', 'React Patterns', 'State Management']}
-               color="var(--cyan)"
-             />
-             <PathCard 
-               title="Backend & Cloud" 
-               desc="Learn to build scalable APIs and manage cloud infrastructure."
-               steps={['Node.js & Express', 'PostgreSQL/Supabase', 'AWS Basics']}
-               color="var(--pink)"
-             />
-             <PathCard 
-               title="UI/UX Design" 
-               desc="Design beautiful and functional user experiences from scratch."
-               steps={['Design Principles', 'Figma Mastery', 'Prototyping']}
-               color="#A78BFA"
-             />
-          </div>
-        </section>
+        <LearningPathsSection />
 
       </div>
     </div>
+  )
+}
+
+/* ── Dynamic Learning Paths Section ─────────────────────── */
+const FALLBACK_PATHS = [
+  { id: 'fb-1', title: 'Frontend Engineering', description: 'Master the modern web with React, TypeScript, and Advanced CSS.', steps: ['JS Fundamentals', 'React Patterns', 'State Management'], color: 'var(--cyan)' },
+  { id: 'fb-2', title: 'Backend & Cloud', description: 'Learn to build scalable APIs and manage cloud infrastructure.', steps: ['Node.js & Express', 'PostgreSQL/Supabase', 'AWS Basics'], color: 'var(--pink)' },
+  { id: 'fb-3', title: 'UI/UX Design', description: 'Design beautiful and functional user experiences from scratch.', steps: ['Design Principles', 'Figma Mastery', 'Prototyping'], color: '#A78BFA' },
+]
+
+function LearningPathsSection() {
+  const [paths, setPaths] = useState<any[]>([])
+  const [pathsLoading, setPathsLoading] = useState(true)
+
+  useEffect(() => {
+    async function fetchPaths() {
+      setPathsLoading(true)
+      const { data, error } = await supabase
+        .from('learning_paths')
+        .select('*')
+        .eq('is_active', true)
+        .order('sort_order', { ascending: true })
+
+      if (error || !data || data.length === 0) {
+        setPaths(FALLBACK_PATHS)
+      } else {
+        const parsed = data.map((p: any) => ({
+          ...p,
+          steps: typeof p.steps === 'string' ? JSON.parse(p.steps) : (p.steps || []),
+        }))
+        setPaths(parsed)
+      }
+      setPathsLoading(false)
+    }
+    fetchPaths()
+  }, [])
+
+  return (
+    <section style={{ marginTop: 100 }}>
+      <div style={{ marginBottom: 32 }}>
+        <p style={{ color: 'var(--pink)', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>Curated Paths</p>
+        <h2 style={{ fontFamily: 'Barlow Condensed, sans-serif', fontSize: 28, fontWeight: 800, color: '#fff', textTransform: 'uppercase' }}>Guided Learning Paths</h2>
+      </div>
+
+      {pathsLoading ? (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 24 }}>
+          {[1, 2, 3].map(i => (
+            <div key={i} style={{ height: 240, background: 'rgba(255,255,255,0.02)', borderRadius: 16, border: '1px solid var(--border)' }} />
+          ))}
+        </div>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 24 }}>
+          {paths.map(p => (
+            <PathCard
+              key={p.id}
+              title={p.title}
+              desc={p.description}
+              steps={p.steps || []}
+              color={p.color || 'var(--cyan)'}
+            />
+          ))}
+        </div>
+      )}
+    </section>
   )
 }
 
@@ -200,7 +238,14 @@ function PathCard({ title, desc, steps, color }: { title: string, desc: string, 
           </div>
         ))}
       </div>
-      <button style={{ marginTop: 24, width: '100%', padding: '10px', borderRadius: 8, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border)', color: '#fff', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>Start Path</button>
+      <Link
+        to={`/coming-soon?title=${encodeURIComponent(title)}`}
+        style={{ display: 'block', marginTop: 24, width: '100%', padding: '10px', borderRadius: 8, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border)', color: '#fff', fontSize: 12, fontWeight: 600, cursor: 'pointer', textDecoration: 'none', textAlign: 'center', boxSizing: 'border-box', transition: 'all 0.2s' }}
+        onMouseEnter={e => { e.currentTarget.style.borderColor = color; e.currentTarget.style.background = `${color}10` }}
+        onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.background = 'rgba(255,255,255,0.03)' }}
+      >
+        Start Path
+      </Link>
     </div>
   )
 }

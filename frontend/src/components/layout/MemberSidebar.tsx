@@ -40,9 +40,9 @@ const ICONS = {
   briefcase: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>,
   code:      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>,
   image:     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>,
-}
+} as Record<string, React.ReactNode>
 
-function getRoleLabel(profile) {
+function getRoleLabel(profile: any) {
   if (profile?.role === 'oc') {
     const pos = profile?.oc_position?.replace(/_/g, ' ') || 'OC Member'
     return `OC · ${pos}`
@@ -51,15 +51,15 @@ function getRoleLabel(profile) {
   return 'General Member'
 }
 
-function getRoleColor(profile) {
+function getRoleColor(profile: any) {
   if (profile?.role === 'oc') return 'var(--pink)'
   if (profile?.role === 'executive') return 'var(--cyan)'
   return 'var(--text-muted)'
 }
 
-function getInitials(name) {
+function getInitials(name: string) {
   if (!name) return 'M'
-  return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+  return name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)
 }
 
 export default function MemberSidebar() {
@@ -97,7 +97,7 @@ export default function MemberSidebar() {
             />
           ) : (
             <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg, var(--cyan), #0066FF)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
-              {getInitials(profile?.full_name)}
+              {getInitials(profile?.full_name || '')}
             </div>
           )}
           <div style={{ overflow: 'hidden' }}>

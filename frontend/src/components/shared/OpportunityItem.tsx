@@ -1,7 +1,7 @@
 import { formatDateShort } from '../../utils/formatters'
 
-export default function OpportunityItem({ opportunity }) {
-  const typeColor = {
+export default function OpportunityItem({ opportunity }: { opportunity: any }) {
+  const typeColor: Record<string, string> = {
     hiring: 'var(--cyan)',
     internship: 'var(--pink)',
     hackathon: '#A78BFA',

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../utils/supabase'
 import { useAuth } from '../../context/AuthContext'
 
@@ -24,7 +24,7 @@ export default function Signup() {
     }
   }, [user, authLoading, navigate])
 
-  const handleCompleteSignup = async (e) => {
+  const handleCompleteSignup = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
 
@@ -129,12 +129,12 @@ export default function Signup() {
   )
 }
 
-const ContainerStyle = { minHeight: '100vh', background: 'var(--bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }
-const CardStyle = { width: '100%', maxWidth: 440, background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 16, padding: '36px 32px' }
-const TitleStyle = { fontFamily: 'Barlow Condensed, sans-serif', fontSize: 32, fontWeight: 900, color: '#fff', textTransform: 'uppercase', marginBottom: 8, textAlign: 'center' }
-const DescStyle = { color: 'var(--text-muted)', fontSize: 13, textAlign: 'center', lineHeight: 1.6 }
-const LabelStyle = { display: 'block', fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }
-const InputStyle = { width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', borderRadius: 8, padding: '11px 14px', color: '#fff', fontSize: 14, outline: 'none', transition: 'border-color 0.2s', fontFamily: 'Inter, sans-serif' }
-const ButtonStyle = { width: '100%', padding: '13px', background: 'var(--cyan)', border: 'none', borderRadius: 8, color: '#0A0E1A', fontSize: 13, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', cursor: 'pointer', marginTop: 10 }
-const ErrorStyle = { background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: 8, padding: '12px 14px', color: '#EF4444', fontSize: 13, lineHeight: 1.5 }
-const SuccessIconStyle = { width: 64, height: 64, borderRadius: '50%', background: 'rgba(16,185,129,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }
+const ContainerStyle: React.CSSProperties = { minHeight: '100vh', background: 'var(--bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }
+const CardStyle: React.CSSProperties = { width: '100%', maxWidth: 440, background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 16, padding: '36px 32px' }
+const TitleStyle: React.CSSProperties = { fontFamily: 'Barlow Condensed, sans-serif', fontSize: 32, fontWeight: 900, color: '#fff', textTransform: 'uppercase', marginBottom: 8, textAlign: 'center' }
+const DescStyle: React.CSSProperties = { color: 'var(--text-muted)', fontSize: 13, textAlign: 'center', lineHeight: 1.6 }
+const LabelStyle: React.CSSProperties = { display: 'block', fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }
+const InputStyle: React.CSSProperties = { width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', borderRadius: 8, padding: '11px 14px', color: '#fff', fontSize: 14, outline: 'none', transition: 'border-color 0.2s', fontFamily: 'Inter, sans-serif' }
+const ButtonStyle: React.CSSProperties = { width: '100%', padding: '13px', background: 'var(--cyan)', border: 'none', borderRadius: 8, color: '#0A0E1A', fontSize: 13, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', cursor: 'pointer', margin: '10px 0 0 0' }
+const ErrorStyle: React.CSSProperties = { background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: 8, padding: '12px 14px', color: '#EF4444', fontSize: 13, lineHeight: 1.5 }
+const SuccessIconStyle: React.CSSProperties = { width: 64, height: 64, borderRadius: '50%', background: 'rgba(16,185,129,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }

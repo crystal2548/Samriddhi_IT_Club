@@ -3,17 +3,28 @@ import { supabase } from '../../utils/supabase'
 import { useAuth } from '../../context/AuthContext'
 import { formatDateShort } from '../../utils/formatters'
 
-const EMPTY_RESOURCE = {
+interface Resource {
+  id?: string;
+  title: string;
+  url: string;
+  type: string;
+  track: string;
+  description: string;
+  added_by?: string;
+  created_at?: string;
+}
+
+const EMPTY_RESOURCE: Resource = {
   title: '', url: '', type: 'Article', track: 'General', description: ''
 }
 
 export default function OCResources() {
   const { profile } = useAuth()
-  const [resources, setResources] = useState([])
+  const [resources, setResources] = useState<Resource[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
-  const [form, setForm] = useState(EMPTY_RESOURCE)
-  const [editId, setEditId] = useState(null)
+  const [form, setForm] = useState<Resource>(EMPTY_RESOURCE)
+  const [editId, setEditId] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
@@ -43,7 +54,7 @@ export default function OCResources() {
         if (data) setResources(prev => [data, ...prev])
       }
       setShowForm(false); setEditId(null); setForm(EMPTY_RESOURCE)
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error saving resource:', err)
       setError(`Failed to save: ${err.message}`)
     } finally {
@@ -51,7 +62,7 @@ export default function OCResources() {
     }
   }
 
-  async function handleDelete(id) {
+  async function handleDelete(id: string) {
     if (!confirm('Delete this resource?')) return
     const { error: err } = await supabase.from('resources').delete().eq('id', id)
     if (!err) setResources(prev => prev.filter(r => r.id !== id))
@@ -120,7 +131,7 @@ export default function OCResources() {
                   <td style={TD}>
                     <div style={{ display: 'flex', gap: 8 }}>
                       <button onClick={() => { startEdit(r) }} style={BS_ACT}>Edit</button>
-                      <button onClick={() => handleDelete(r.id)} style={{ ...BS_ACT, color: '#EF4444' }}>Delete</button>
+                      <button onClick={() => r.id && handleDelete(r.id)} style={{ ...BS_ACT, color: '#EF4444' }}>Delete</button>
                     </div>
                   </td>
                 </tr>
@@ -132,13 +143,13 @@ export default function OCResources() {
     </div>
   )
 
-  function startEdit(res) {
+  function startEdit(res: Resource) {
     setForm({ ...EMPTY_RESOURCE, ...res })
-    setEditId(res.id); setShowForm(true)
+    setEditId(res.id || null); setShowForm(true)
   }
 }
 
-function FormField({ label, value, onChange, placeholder = '' }) {
+function FormField({ label, value, onChange, placeholder = '' }: { label: string, value: string, onChange: (v: string) => void, placeholder?: string }) {
   return (
     <div>
       <label style={LS}>{label}</label>
@@ -147,12 +158,12 @@ function FormField({ label, value, onChange, placeholder = '' }) {
   )
 }
 
-const LS = { display: 'block', color: 'var(--text-muted)', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }
-const IS = { width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', borderRadius: 8, padding: '9px 12px', color: '#fff', fontSize: 13, outline: 'none' }
-const TS = { ...IS, resize: 'vertical', fontFamily: 'Inter, sans-serif' }
-const TH = { padding: '12px 16px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }
-const TD = { padding: '12px 16px', fontSize: 13, color: 'var(--text-secondary)' }
-const TAG = { fontSize: 10, padding: '2px 6px', borderRadius: 4, background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', color: 'var(--cyan)' }
-const BS_PRI = { padding: '10px 24px', background: 'var(--cyan)', border: 'none', borderRadius: 8, color: '#0A0E1A', fontSize: 13, fontWeight: 700, cursor: 'pointer' }
-const BS_SEC = { padding: '10px 20px', background: 'transparent', border: '1px solid var(--border)', borderRadius: 8, color: 'var(--text-muted)', fontSize: 13, cursor: 'pointer' }
-const BS_ACT = { padding: '4px 10px', borderRadius: 6, background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', color: 'var(--text-muted)', fontSize: 11, cursor: 'pointer' }
+const LS: React.CSSProperties = { display: 'block', color: 'var(--text-muted)', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }
+const IS: React.CSSProperties = { width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', borderRadius: 8, padding: '9px 12px', color: '#fff', fontSize: 13, outline: 'none' }
+const TS: React.CSSProperties = { ...IS, resize: 'vertical', fontFamily: 'Inter, sans-serif' }
+const TH: React.CSSProperties = { padding: '12px 16px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }
+const TD: React.CSSProperties = { padding: '12px 16px', fontSize: 13, color: 'var(--text-secondary)' }
+const TAG: React.CSSProperties = { fontSize: 10, padding: '2px 6px', borderRadius: 4, background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', color: 'var(--cyan)' }
+const BS_PRI: React.CSSProperties = { padding: '10px 24px', background: 'var(--cyan)', border: 'none', borderRadius: 8, color: '#0A0E1A', fontSize: 13, fontWeight: 700, cursor: 'pointer' }
+const BS_SEC: React.CSSProperties = { padding: '10px 20px', background: 'transparent', border: '1px solid var(--border)', borderRadius: 8, color: 'var(--text-muted)', fontSize: 13, cursor: 'pointer' }
+const BS_ACT: React.CSSProperties = { padding: '4px 10px', borderRadius: 6, background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', color: 'var(--text-muted)', fontSize: 11, cursor: 'pointer' }

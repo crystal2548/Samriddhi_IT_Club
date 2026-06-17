@@ -3,17 +3,28 @@ import { supabase } from '../../utils/supabase'
 import { useAuth } from '../../context/AuthContext'
 import { formatDateShort } from '../../utils/formatters'
 
-const EMPTY_OPPORTUNITY = {
+interface Opportunity {
+  id?: string;
+  title: string;
+  type: string;
+  description: string;
+  link: string;
+  deadline: string;
+  is_active: boolean;
+  posted_by?: string;
+}
+
+const EMPTY_OPPORTUNITY: Opportunity = {
   title: '', type: 'Internship', description: '', link: '', deadline: '', is_active: true
 }
 
 export default function OCOpportunities() {
   const { profile } = useAuth()
-  const [opportunities, setOpportunities] = useState([])
+  const [opportunities, setOpportunities] = useState<Opportunity[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
-  const [form, setForm] = useState(EMPTY_OPPORTUNITY)
-  const [editId, setEditId] = useState(null)
+  const [form, setForm] = useState<Opportunity>(EMPTY_OPPORTUNITY)
+  const [editId, setEditId] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
@@ -43,7 +54,7 @@ export default function OCOpportunities() {
         if (data) setOpportunities(prev => [data, ...prev])
       }
       setShowForm(false); setEditId(null); setForm(EMPTY_OPPORTUNITY)
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error saving opportunity:', err)
       setError(`Failed to save: ${err.message}`)
     } finally {
@@ -51,7 +62,7 @@ export default function OCOpportunities() {
     }
   }
 
-  async function handleDelete(id) {
+  async function handleDelete(id: string) {
     if (!confirm('Delete this opportunity?')) return
     const { error: err } = await supabase.from('opportunities').delete().eq('id', id)
     if (!err) setOpportunities(prev => prev.filter(o => o.id !== id))
@@ -134,7 +145,7 @@ export default function OCOpportunities() {
                   <td style={TD}>
                     <div style={{ display: 'flex', gap: 8 }}>
                       <button onClick={() => { startEdit(o) }} style={BS_ACT}>Edit</button>
-                      <button onClick={() => handleDelete(o.id)} style={{ ...BS_ACT, color: '#EF4444' }}>Delete</button>
+                      <button onClick={() => o.id && handleDelete(o.id)} style={{ ...BS_ACT, color: '#EF4444' }}>Delete</button>
                     </div>
                   </td>
                 </tr>
@@ -146,13 +157,13 @@ export default function OCOpportunities() {
     </div>
   )
 
-  function startEdit(opp) {
+  function startEdit(opp: Opportunity) {
     setForm({ ...EMPTY_OPPORTUNITY, ...opp })
-    setEditId(opp.id); setShowForm(true)
+    setEditId(opp.id || null); setShowForm(true)
   }
 }
 
-function FormField({ label, value, onChange, placeholder = '' }) {
+function FormField({ label, value, onChange, placeholder = '' }: { label: string, value: string, onChange: (v: string) => void, placeholder?: string }) {
   return (
     <div>
       <label style={LS}>{label}</label>
@@ -161,13 +172,13 @@ function FormField({ label, value, onChange, placeholder = '' }) {
   )
 }
 
-const LS = { display: 'block', color: 'var(--text-muted)', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }
-const IS = { width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', borderRadius: 8, padding: '9px 12px', color: '#fff', fontSize: 13, outline: 'none' }
-const SS = { ...IS, appearance: 'none', backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'12\' height=\'12\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'white\' stroke-width=\'2\'%3E%3Cpath d=\'M6 9l6 6 6-6\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center' }
-const TS = { ...IS, resize: 'vertical', fontFamily: 'Inter, sans-serif' }
-const TH = { padding: '12px 16px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }
-const TD = { padding: '12px 16px', fontSize: 13, color: 'var(--text-secondary)' }
-const TAG = { fontSize: 10, padding: '2px 6px', borderRadius: 4, background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', color: 'var(--pink)' }
-const BS_PRI = { padding: '10px 24px', background: 'var(--cyan)', border: 'none', borderRadius: 8, color: '#0A0E1A', fontSize: 13, fontWeight: 700, cursor: 'pointer' }
-const BS_SEC = { padding: '10px 20px', background: 'transparent', border: '1px solid var(--border)', borderRadius: 8, color: 'var(--text-muted)', fontSize: 13, cursor: 'pointer' }
-const BS_ACT = { padding: '4px 10px', borderRadius: 6, background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', color: 'var(--text-muted)', fontSize: 11, cursor: 'pointer' }
+const LS: React.CSSProperties = { display: 'block', color: 'var(--text-muted)', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }
+const IS: React.CSSProperties = { width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', borderRadius: 8, padding: '9px 12px', color: '#fff', fontSize: 13, outline: 'none' }
+const SS: React.CSSProperties = { ...IS, appearance: 'none', backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'12\' height=\'12\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'white\' stroke-width=\'2\'%3E%3Cpath d=\'M6 9l6 6 6-6\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center' }
+const TS: React.CSSProperties = { ...IS, resize: 'vertical', fontFamily: 'Inter, sans-serif' }
+const TH: React.CSSProperties = { padding: '12px 16px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }
+const TD: React.CSSProperties = { padding: '12px 16px', fontSize: 13, color: 'var(--text-secondary)' }
+const TAG: React.CSSProperties = { fontSize: 10, padding: '2px 6px', borderRadius: 4, background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', color: 'var(--pink)' }
+const BS_PRI: React.CSSProperties = { padding: '10px 24px', background: 'var(--cyan)', border: 'none', borderRadius: 8, color: '#0A0E1A', fontSize: 13, fontWeight: 700, cursor: 'pointer' }
+const BS_SEC: React.CSSProperties = { padding: '10px 20px', background: 'transparent', border: '1px solid var(--border)', borderRadius: 8, color: 'var(--text-muted)', fontSize: 13, cursor: 'pointer' }
+const BS_ACT: React.CSSProperties = { padding: '4px 10px', borderRadius: 6, background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', color: 'var(--text-muted)', fontSize: 11, cursor: 'pointer' }

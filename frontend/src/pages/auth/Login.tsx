@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../../utils/supabase'
+import { useSiteSettings } from '../../context/SiteContext'
 
 export default function Login() {
   const navigate = useNavigate()
+  const { settings } = useSiteSettings()
 
   const [email, setEmail]       = useState('')
   const [password, setPassword] = useState('')
@@ -11,7 +13,7 @@ export default function Login() {
   const [error, setError]       = useState('')
   const [showPass, setShowPass] = useState(false)
 
-  const handleLogin = async (e) => {
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setError('')
 
@@ -99,21 +101,36 @@ export default function Login() {
         {/* ── Logo ───────────────────────────────────────── */}
         <div style={{ textAlign: 'center', marginBottom: 36 }}>
           <Link to="/" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 10, marginBottom: 24 }}>
-            <div style={{ width: 40, height: 40, borderRadius: 12, background: 'rgba(0,212,255,0.08)', border: '1.5px solid rgba(0,212,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <svg width="20" height="20" viewBox="0 0 16 16" fill="none">
-                <rect x="6" y="6" width="4" height="4" rx="1" stroke="var(--cyan)" strokeWidth="1.5"/>
-                <line x1="8" y1="1" x2="8" y2="6" stroke="var(--cyan)" strokeWidth="1.5" strokeLinecap="round"/>
-                <line x1="8" y1="10" x2="8" y2="15" stroke="var(--cyan)" strokeWidth="1.5" strokeLinecap="round"/>
-                <line x1="1" y1="8" x2="6" y2="8" stroke="var(--cyan)" strokeWidth="1.5" strokeLinecap="round"/>
-                <line x1="10" y1="8" x2="15" y2="8" stroke="var(--cyan)" strokeWidth="1.5" strokeLinecap="round"/>
-                <circle cx="8" cy="1" r="1" fill="var(--cyan)"/>
-                <circle cx="8" cy="15" r="1" fill="var(--cyan)"/>
-                <circle cx="1" cy="8" r="1" fill="var(--pink)"/>
-                <circle cx="15" cy="8" r="1" fill="var(--pink)"/>
-              </svg>
+            <div style={{ 
+              width: 40, 
+              height: 40, 
+              borderRadius: 12, 
+              background: 'rgba(0,212,255,0.08)', 
+              border: '1.5px solid rgba(0,212,255,0.3)', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              overflow: 'hidden',
+            }}>
+              <img src={settings.logo_url || 'https://res.cloudinary.com/dkjxvacsm/image/upload/v1774494475/cuas20xiq6lkpb2eukvx.jpg'} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }}/>
             </div>
-            <span style={{ fontSize: 15, fontWeight: 800, color: '#fff', letterSpacing: '0.04em' }}>
-              SAMRIDDHI <span style={{ color: 'var(--cyan)' }}>IT CLUB</span>
+            <span style={{ fontSize: 15, fontWeight: 800, color: '#fff', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+              {settings.club_name ? (
+                <>
+                  {settings.club_name.toLowerCase().includes('it club') ? (
+                    <>
+                      {settings.club_name.toUpperCase().replace('IT CLUB', '')}
+                      <span style={{ color: 'var(--cyan)' }}>IT CLUB</span>
+                    </>
+                  ) : (
+                    settings.club_name.toUpperCase()
+                  )}
+                </>
+              ) : (
+                <>
+                  SAMRIDDHI <span style={{ color: 'var(--cyan)' }}>IT CLUB</span>
+                </>
+              )}
             </span>
           </Link>
 

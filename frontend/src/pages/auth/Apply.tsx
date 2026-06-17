@@ -1,11 +1,15 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../../utils/supabase'
-import { useSiteSettings } from '../../context/SiteContext'
+
+
+interface Cycle {
+  id: string;
+  title: string;
+}
 
 export default function Apply() {
-  const { settings } = useSiteSettings()
-  const [cycles, setCycles] = useState([])
+  const [cycles, setCycles] = useState<Cycle[]>([])
   const [loading, setLoading] = useState(true)
   const [submitted, setSubmitted] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -31,7 +35,7 @@ export default function Apply() {
         .order('created_at', { ascending: false })
       
       setCycles(data || [])
-      if (data?.length > 0) {
+      if (data && data.length > 0) {
         setForm(p => ({ ...p, cycle_id: data[0].id }))
       }
       setLoading(false)
@@ -39,7 +43,7 @@ export default function Apply() {
     fetchCycles()
   }, [])
 
-  async function handleSubmit(e) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!form.cycle_id) return setError('Please select a recruitment cycle.')
     setSaving(true)

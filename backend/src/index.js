@@ -3,6 +3,7 @@ const cors = require('cors')
 const dotenv = require('dotenv')
 
 dotenv.config()
+// Trigger nodemon restart after env fix
 
 const app = express()
 const PORT = process.env.PORT || 5000

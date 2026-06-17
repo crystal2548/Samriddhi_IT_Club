@@ -124,6 +124,7 @@ export const NAV_LINKS: NavLink[] = [
   { label: 'Resources', path: '/resources' },
   { label: 'Gallery',   path: '/gallery' },
   { label: 'Team',      path: '/team' },
+  { label: 'Sponsors',  path: '/sponsors' },
   { label: 'Contact',   path: '/contact' },
 ]
 

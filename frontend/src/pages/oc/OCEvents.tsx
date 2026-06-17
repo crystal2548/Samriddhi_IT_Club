@@ -2,7 +2,6 @@ import React, { useState, useRef } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../../utils/supabase'
 import { useAuth } from '../../context/AuthContext'
-import { formatDateTime } from '../../utils/formatters'
 
 export interface AppEvent {
   id?: string;

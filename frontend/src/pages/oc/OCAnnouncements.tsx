@@ -6,9 +6,19 @@ import { supabase } from '../../utils/supabase'
 import { useAuth } from '../../context/AuthContext'
 import { formatDate } from '../../utils/formatters'
 
+interface Announcement {
+  id: string;
+  title: string;
+  body: string;
+  audience: string;
+  is_pinned: boolean;
+  created_at: string;
+  created_by?: string;
+}
+
 export default function OCAnnouncements() {
   const { profile } = useAuth()
-  const [announcements, setAnnouncements] = useState([])
+  const [announcements, setAnnouncements] = useState<Announcement[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState({ title: '', body: '', audience: 'all', is_pinned: false, send_email: false })
@@ -26,12 +36,12 @@ export default function OCAnnouncements() {
     setShowForm(false); setForm({ title: '', body: '', audience: 'all', is_pinned: false, send_email: false }); setSaving(false)
   }
 
-  async function handleDelete(id) {
+  async function handleDelete(id: string) {
     await supabase.from('announcements').delete().eq('id', id)
     setAnnouncements(prev => prev.filter(a => a.id !== id))
   }
 
-  const AUDIENCE_COLORS = { all: { bg: 'rgba(0,212,255,0.1)', color: 'var(--cyan)', border: 'rgba(0,212,255,0.25)' }, general: { bg: 'rgba(16,185,129,0.1)', color: '#10B981', border: 'rgba(16,185,129,0.25)' }, executive: { bg: 'rgba(167,139,250,0.1)', color: '#A78BFA', border: 'rgba(167,139,250,0.25)' }, oc: { bg: 'rgba(255,45,155,0.1)', color: 'var(--pink)', border: 'rgba(255,45,155,0.25)' } }
+  const AUDIENCE_COLORS: Record<string, { bg: string, color: string, border: string }> = { all: { bg: 'rgba(0,212,255,0.1)', color: 'var(--cyan)', border: 'rgba(0,212,255,0.25)' }, general: { bg: 'rgba(16,185,129,0.1)', color: '#10B981', border: 'rgba(16,185,129,0.25)' }, executive: { bg: 'rgba(167,139,250,0.1)', color: '#A78BFA', border: 'rgba(167,139,250,0.25)' }, oc: { bg: 'rgba(255,45,155,0.1)', color: 'var(--pink)', border: 'rgba(255,45,155,0.25)' } }
 
   return (
     <div>
@@ -112,5 +122,5 @@ export default function OCAnnouncements() {
   )
 }
 
-const LS = { display: 'block', fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }
-const IS = { width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', borderRadius: 8, padding: '9px 12px', color: '#fff', fontSize: 13, outline: 'none', fontFamily: 'Inter, sans-serif' }
+const LS: React.CSSProperties = { display: 'block', fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }
+const IS: React.CSSProperties = { width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', borderRadius: 8, padding: '9px 12px', color: '#fff', fontSize: 13, outline: 'none', fontFamily: 'Inter, sans-serif' }

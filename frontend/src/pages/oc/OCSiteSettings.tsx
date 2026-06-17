@@ -3,10 +3,29 @@ import { supabase } from '../../utils/supabase'
 import { useAuth } from '../../context/AuthContext'
 import { useSiteSettings } from '../../context/SiteContext'
 
+interface SiteSettings {
+  id?: number;
+  club_name: string;
+  tagline: string;
+  logo_url: string;
+  hero_cta_text: string;
+  contact_email: string;
+  instagram_url: string;
+  linkedin_url: string;
+  github_org_url: string;
+  maintenance_mode: boolean;
+  about_description?: string;
+  about_story?: string;
+  stat_members?: string;
+  stat_events?: string;
+  stat_alumni?: string;
+  stat_partners?: string;
+}
+
 export default function OCSiteSettings() {
   const { profile } = useAuth()
   const { refetch } = useSiteSettings()
-  const [settings, setSettings] = useState({ club_name: '', tagline: '', logo_url: '', hero_cta_text: '', contact_email: '', instagram_url: '', linkedin_url: '', github_org_url: '', maintenance_mode: false })
+  const [settings, setSettings] = useState<SiteSettings>({ club_name: '', tagline: '', logo_url: '', hero_cta_text: '', contact_email: '', instagram_url: '', linkedin_url: '', github_org_url: '', maintenance_mode: false })
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -119,7 +138,7 @@ export default function OCSiteSettings() {
               <div style={{ position: 'relative', width: 44, height: 24 }}>
                 <input type="checkbox" checked={settings.maintenance_mode} onChange={e => setSettings(p => ({ ...p, maintenance_mode: e.target.checked }))} style={{ opacity: 0, width: '100%', height: '100%', position: 'absolute', cursor: 'pointer', margin: 0, zIndex: 1 }} />
                 <div style={{ width: '100%', height: '100%', borderRadius: 12, background: settings.maintenance_mode ? 'var(--cyan)' : 'rgba(255,255,255,0.1)', transition: 'background 0.2s' }}>
-                  <div style={{ width: 18, height: 18, borderRadius: '50%', background: '#fff', position: 'absolute', top: 3, left: settings.maintenance_mode ? 23 : 3, transition: 'left 0.2s' }}/>
+                  <div style={{ width: 18, height: 18, borderRadius: '50%', background: '#fff', position: 'absolute', top: 3, left: settings.maintenance_mode ? 23 : 3, transition: 'left 0.2s' }} />
                 </div>
               </div>
               <div>
@@ -143,7 +162,7 @@ export default function OCSiteSettings() {
   )
 }
 
-function SettingsSection({ title, children }) {
+function SettingsSection({ title, children }: { title: string, children: React.ReactNode }) {
   return (
     <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, padding: 24 }}>
       <h3 style={{ color: '#fff', fontSize: 14, fontWeight: 600, marginBottom: 20, paddingBottom: 12, borderBottom: '1px solid var(--border)' }}>{title}</h3>
@@ -152,7 +171,7 @@ function SettingsSection({ title, children }) {
   )
 }
 
-function Field({ label, value, onChange, type = 'text', placeholder = '' }) {
+function Field({ label, value, onChange, type = 'text', placeholder = '' }: { label: string, value: string | undefined, onChange: (v: string) => void, type?: string, placeholder?: string }) {
   return (
     <div>
       <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>{label}</label>
@@ -165,7 +184,7 @@ function Field({ label, value, onChange, type = 'text', placeholder = '' }) {
   )
 }
 
-function Textarea({ label, value, onChange, placeholder = '', rows = 4 }) {
+function Textarea({ label, value, onChange, placeholder = '', rows = 4 }: { label: string, value: string | undefined, onChange: (v: string) => void, placeholder?: string, rows?: number }) {
   return (
     <div>
       <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>{label}</label>
@@ -179,13 +198,13 @@ function Textarea({ label, value, onChange, placeholder = '', rows = 4 }) {
 }
 
 
-function LogoUpload({ label, value, onChange }) {
-  const fileRef = useRef(null)
+function LogoUpload({ label, value, onChange }: { label: string, value: string | undefined, onChange: (v: string) => void }) {
+  const fileRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState('')
 
-  async function handleFile(e) {
-    const file = e.target.files[0]
+  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
     if (!file) return
     if (file.size > 5 * 1024 * 1024) { setError('Image must be under 5MB.'); return }
     setUploading(true); setError('')
@@ -196,7 +215,7 @@ function LogoUpload({ label, value, onChange }) {
         headers: { 'Content-Type': 'application/json' },
       })
       if (!signRes.ok) throw new Error(`Sign request failed with status: ${signRes.status}`)
-      
+
       const { signature, timestamp, api_key, cloud_name } = await signRes.json()
 
       const formData = new FormData()
@@ -209,7 +228,7 @@ function LogoUpload({ label, value, onChange }) {
         `https://api.cloudinary.com/v1_1/${cloud_name}/image/upload`,
         { method: 'POST', body: formData }
       )
-      
+
       if (!uploadRes.ok) {
         const errData = await uploadRes.json()
         throw new Error(errData.error?.message || 'Cloudinary upload failed')
@@ -221,7 +240,7 @@ function LogoUpload({ label, value, onChange }) {
       } else {
         throw new Error('No secure_url returned from Cloudinary')
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Upload flow error:', err)
       setError(`Upload failed: ${err.message}`)
     } finally {
@@ -235,7 +254,7 @@ function LogoUpload({ label, value, onChange }) {
       <div style={{ border: '1px dashed var(--border)', borderRadius: 12, padding: 20, textAlign: 'center', background: 'rgba(255,255,255,0.02)' }}>
         {value ? (
           <div style={{ position: 'relative', width: 'fit-content', margin: '0 auto' }}>
-            <img src={value} alt="Logo" style={{ height: 60, borderRadius: 8, objectFit: 'contain', background: '#fff', padding: 8 }}/>
+            <img src={value} alt="Logo" style={{ height: 60, borderRadius: 8, objectFit: 'contain', background: '#fff', padding: 8 }} />
             <button onClick={() => onChange('')} style={{ position: 'absolute', top: -10, right: -10, width: 24, height: 24, borderRadius: '50%', background: '#EF4444', border: 'none', color: '#fff', cursor: 'pointer' }}>×</button>
           </div>
         ) : (

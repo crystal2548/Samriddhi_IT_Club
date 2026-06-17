@@ -188,21 +188,7 @@ export default function Navbar() {
               overflow: 'hidden',
               flexShrink: 0,
             }}>
-              {settings.logo_url ? (
-                <img src={settings.logo_url} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }}/>
-              ) : (
-                <svg width="18" height="18" viewBox="0 0 16 16" fill="none">
-                  <rect x="6" y="6" width="4" height="4" rx="1" stroke="#00D4FF" strokeWidth="1.5"/>
-                  <line x1="8" y1="1" x2="8" y2="6" stroke="#00D4FF" strokeWidth="1.5" strokeLinecap="round"/>
-                  <line x1="8" y1="10" x2="8" y2="15" stroke="#00D4FF" strokeWidth="1.5" strokeLinecap="round"/>
-                  <line x1="1" y1="8" x2="6" y2="8" stroke="#00D4FF" strokeWidth="1.5" strokeLinecap="round"/>
-                  <line x1="10" y1="8" x2="15" y2="8" stroke="#00D4FF" strokeWidth="1.5" strokeLinecap="round"/>
-                  <circle cx="8" cy="1" r="1" fill="#00D4FF"/>
-                  <circle cx="8" cy="15" r="1" fill="#00D4FF"/>
-                  <circle cx="1" cy="8" r="1" fill="#FF2D9B"/>
-                  <circle cx="15" cy="8" r="1" fill="#FF2D9B"/>
-                </svg>
-              )}
+              <img src={settings.logo_url || 'https://res.cloudinary.com/dkjxvacsm/image/upload/v1774494475/cuas20xiq6lkpb2eukvx.jpg'} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }}/>
             </div>
             <span style={{ fontSize: 13, fontWeight: 800, letterSpacing: '0.05em', color: '#fff' }}>
               {settings.club_name.toUpperCase()}

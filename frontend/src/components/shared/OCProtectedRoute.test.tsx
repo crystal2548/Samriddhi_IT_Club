@@ -4,7 +4,7 @@ import OCProtectedRoute from './OCProtectedRoute'
 
 // Mock react-router-dom
 vi.mock('react-router-dom', () => ({
-  Navigate: ({ to }) => <div data-testid="navigate" data-to={to} />,
+  Navigate: ({ to }: { to: string }) => <div data-testid="navigate" data-to={to} />,
   Outlet: () => <div data-testid="outlet" />
 }))
 

@@ -2,10 +2,19 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../../utils/supabase'
 import { formatDate } from '../../utils/formatters'
 
+interface ContactMessage {
+  id: string;
+  full_name: string;
+  email: string;
+  subject: string;
+  message: string;
+  created_at: string;
+}
+
 export default function OCMessages() {
-  const [messages, setMessages] = useState([])
+  const [messages, setMessages] = useState<ContactMessage[]>([])
   const [loading, setLoading] = useState(true)
-  const [selected, setSelected] = useState(null)
+  const [selected, setSelected] = useState<ContactMessage | null>(null)
   const [search, setSearch] = useState('')
 
   useEffect(() => {
@@ -34,7 +43,7 @@ export default function OCMessages() {
     m.message?.toLowerCase().includes(search.toLowerCase())
   )
 
-  async function handleDelete(id) {
+  async function handleDelete(id: string) {
     if (!confirm('Are you sure you want to delete this message?')) return
 
     const { error } = await supabase

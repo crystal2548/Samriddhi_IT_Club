@@ -27,6 +27,7 @@ const NAV = [
       { label: 'Projects',      path: '/oc/projects',      icon: 'code' },
       { label: 'Opportunities', path: '/oc/opportunities', icon: 'briefcase' },
       { label: 'Resources',     path: '/oc/resources',     icon: 'folder' },
+      { label: 'Learning Paths', path: '/oc/learning-paths', icon: 'compass' },
     ]
   },
   {
@@ -56,6 +57,7 @@ const ICONS = {
   star: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>,
   shield: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
   settings: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>,
+  compass: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>,
 }
 
 export default function OCSidebar({ badges = {} }: { badges?: Record<string, number> }) {
@@ -77,21 +79,7 @@ export default function OCSidebar({ badges = {} }: { badges?: Record<string, num
       <div style={{ padding: '20px 16px 16px', borderBottom: '1px solid var(--border)' }}>
         <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 8 }}>
           <div style={{ width: 30, height: 30, borderRadius: 8, background: 'rgba(0,212,255,0.08)', border: '1px solid rgba(0,212,255,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
-            {settings?.logo_url ? (
-              <img src={settings.logo_url} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-            ) : (
-              <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-                <rect x="6" y="6" width="4" height="4" rx="1" stroke="var(--cyan)" strokeWidth="1.5"/>
-                <line x1="8" y1="1" x2="8" y2="6" stroke="var(--cyan)" strokeWidth="1.5" strokeLinecap="round"/>
-                <line x1="8" y1="10" x2="8" y2="15" stroke="var(--cyan)" strokeWidth="1.5" strokeLinecap="round"/>
-                <line x1="1" y1="8" x2="6" y2="8" stroke="var(--cyan)" strokeWidth="1.5" strokeLinecap="round"/>
-                <line x1="10" y1="8" x2="15" y2="8" stroke="var(--cyan)" strokeWidth="1.5" strokeLinecap="round"/>
-                <circle cx="8" cy="1" r="1" fill="var(--cyan)"/>
-                <circle cx="8" cy="15" r="1" fill="var(--cyan)"/>
-                <circle cx="1" cy="8" r="1" fill="var(--pink)"/>
-                <circle cx="15" cy="8" r="1" fill="var(--pink)"/>
-              </svg>
-            )}
+            <img src={settings?.logo_url || 'https://res.cloudinary.com/dkjxvacsm/image/upload/v1774494475/cuas20xiq6lkpb2eukvx.jpg'} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
           </div>
           <div>
             <div style={{ fontSize: 11, fontWeight: 800, color: '#fff', letterSpacing: '0.04em', lineHeight: 1.2 }}>

@@ -24,6 +24,9 @@ import Team from '../pages/public/Team'
 import Contact from '../pages/public/Contact'
 import GalleryPublic from '../pages/public/Gallery'
 import NotFound from '../pages/public/NotFound'
+import ComingSoon from '../pages/public/ComingSoon'
+import Sponsors from '../pages/public/Sponsors'
+import QuantumSphere from '../components/QuantumSphere'
 
 // ─── Auth Pages ─────────────────────────────────────────────
 import Login from '../pages/auth/Login'
@@ -58,6 +61,7 @@ import OCSponsors from '../pages/oc/OCSponsors'
 import OCPermissions from '../pages/oc/OCPermissions'
 import OCSiteSettings from '../pages/oc/OCSiteSettings'
 import OCMessages from '../pages/oc/OCMessages'
+import OCLearningPaths from '../pages/oc/OCLearningPaths'
 
 export default function AppRoutes() {
   return (
@@ -80,7 +84,12 @@ export default function AppRoutes() {
         <Route path="/apply"          element={<Apply />} />
         <Route path="/join"           element={<Navigate to="/apply" replace />} />
         <Route path="/contact"        element={<Contact />} />
+        <Route path="/sponsors"       element={<Sponsors />} />
+        <Route path="/coming-soon"    element={<ComingSoon />} />
       </Route>
+
+      {/* ─── Quantum Sphere (standalone, no layout) ────────────── */}
+      <Route path="/quantum-sphere"    element={<QuantumSphere />} />
 
       {/* ─── Auth Routes (no Navbar/Footer) ───────────────────── */}
       <Route path="/login"            element={<Login />} />
@@ -123,6 +132,7 @@ export default function AppRoutes() {
           <Route path="/oc/permissions"         element={<OCPermissions />} />
           <Route path="/oc/settings"            element={<OCSiteSettings />} />
           <Route path="/oc/messages"            element={<OCMessages />} />
+          <Route path="/oc/learning-paths"      element={<OCLearningPaths />} />
         </Route>
       </Route>
 
